@@ -69,6 +69,7 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
         extent = pd.Series(df_sea_ice[month]).astype(float)
 
         extent = extent.interpolate(method='linear')
+        extent = extent.transform("rank")
 
         extent_diff = np.diff(extent, 1)
 
