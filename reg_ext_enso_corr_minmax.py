@@ -13,8 +13,9 @@ import numpy as np
 
 def Average(lst): return round(sum(lst)/len(lst), 3)
 
-def plot_graph(sector, year, extent):
+def plot_graph(sector, year, extent, bfl_values):
     plt.plot(year, extent, label='Data')
+    plt.plot(year, bfl_values, color='red', label='Best Fit Line')
     plt.xlabel('Year')
     plt.ylabel('Extent')
     plt.title(sector)
@@ -58,6 +59,7 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
         extent_diff = np.diff(extent, 1)
 
         m, b = np.polyfit(year, extent, 1)
+        bfl_values = m*year + b
 
         # ENSO Data
 
@@ -78,4 +80,4 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
 
     corr_values.clear()
 
-    # plot_graph(sector, year, extent)
+    # plot_graph(sector, year, extent, bfl_values)
