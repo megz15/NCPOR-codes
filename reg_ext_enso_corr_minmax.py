@@ -119,6 +119,8 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
         
         print(("\033[0;32m" if abs(maxima_corr_values[i]) > pearson_threshold else "") + str(maxima_corr_values[i]) + "\033[0m", end='\t')
         print(("\033[0;32m" if abs(maxima_above_bfl_corr_values[i]) > pearson_threshold else "") + str(maxima_above_bfl_corr_values[i]) + "\033[0m", end='\n')
+    
+    print(f"\033[0;33mAverage\t\t{Average(corr_values)}\t{Average(minima_corr_values)}\t{Average(minima_below_bfl_corr_values)}\t{Average(maxima_corr_values)}\t{Average(maxima_above_bfl_corr_values)}\033[0m")
 
     corr_values.clear()
     minima_corr_values.clear()
