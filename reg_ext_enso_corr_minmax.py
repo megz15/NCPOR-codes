@@ -94,18 +94,38 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
         df_soi = df_soi[df_soi['Year']>=1979].reset_index()
 
         curr_corr = round(extent.corr(df_soi[month], method='pearson'), 3)
+        if abs(curr_corr) > abs(max_corr['value']):
+            max_corr['value'] = curr_corr
+            max_corr['month'] = month
+            max_corr['sector'] = sector
         corr_values.append(curr_corr)
 
         curr_minima_corr = round(local_minima_values.corr(df_soi[month][local_minima_indices], method='pearson'), 3)
+        if abs(curr_minima_corr) > abs(max_minima_corr['value']):
+            max_minima_corr['value'] = curr_minima_corr
+            max_minima_corr['month'] = month
+            max_minima_corr['sector'] = sector
         minima_corr_values.append(curr_minima_corr)
 
         curr_minima_below_bfl_corr = round(minima_below_bfl_values.corr(df_soi[month][minima_below_bfl_indices], method='pearson'), 3)
+        if abs(curr_minima_below_bfl_corr) > abs(max_minima_below_bfl_corr['value']):
+            max_minima_below_bfl_corr['value'] = curr_minima_below_bfl_corr
+            max_minima_below_bfl_corr['month'] = month
+            max_minima_below_bfl_corr['sector'] = sector
         minima_below_bfl_corr_values.append(curr_minima_below_bfl_corr)
 
         curr_maxima_corr = round(local_maxima_values.corr(df_soi[month][local_maxima_indices], method='pearson'), 3)
+        if abs(curr_maxima_corr) > abs(max_maxima_corr['value']):
+            max_maxima_corr['value'] = curr_maxima_corr
+            max_maxima_corr['month'] = month
+            max_maxima_corr['sector'] = sector
         maxima_corr_values.append(curr_maxima_corr)
 
         curr_maxima_above_bfl_corr = round(maxima_above_bfl_values.corr(df_soi[month][maxima_above_bfl_indices], method='pearson'), 3)
+        if abs(curr_maxima_above_bfl_corr) > abs(max_maxima_above_bfl_corr['value']):
+            max_maxima_above_bfl_corr['value'] = curr_maxima_above_bfl_corr
+            max_maxima_above_bfl_corr['month'] = month
+            max_maxima_above_bfl_corr['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
@@ -129,3 +149,23 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
     maxima_above_bfl_corr_values.clear()
 
     # plot_graph(sector, year, extent, bfl_values)
+
+print(f"\nMaximum correlation value : {max_corr['value']}")
+print(f"Maximum correlation month : {max_corr['month']}")
+print(f"Maximum correlation sector: {max_corr['sector']}")
+
+print(f"\nMaximum min correlation value : {max_minima_corr['value']}")
+print(f"Maximum min correlation month : {max_minima_corr['month']}")
+print(f"Maximum min correlation sector: {max_minima_corr['sector']}")
+
+print(f"\nMaximum min below BFL correlation value : {max_minima_below_bfl_corr['value']}")
+print(f"Maximum min below BFL correlation month : {max_minima_below_bfl_corr['month']}")
+print(f"Maximum min below BFL correlation sector: {max_minima_below_bfl_corr['sector']}")
+
+print(f"\nMaximum max correlation value : {max_maxima_corr['value']}")
+print(f"Maximum max correlation month : {max_maxima_corr['month']}")
+print(f"Maximum max correlation sector: {max_maxima_corr['sector']}")
+
+print(f"\nMaximum max above BFL correlation value : {max_maxima_above_bfl_corr['value']}")
+print(f"Maximum max above BFL correlation month : {max_maxima_above_bfl_corr['month']}")
+print(f"Maximum max above BFL correlation sector: {max_maxima_above_bfl_corr['sector']}")
