@@ -6,7 +6,7 @@ c.retrieve(
     'reanalysis-era5-single-levels-monthly-means',
     {
         'product_type': 'monthly_averaged_reanalysis',
-        'variable': '2m_temperature',
+        'variable': '2m_temperature', 
         'year': [
             '1979', '1980', '1981',
             '1982', '1983', '1984',
