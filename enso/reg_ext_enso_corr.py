@@ -13,14 +13,13 @@ import numpy as np
 
 def Average(lst): return round(sum(lst)/len(lst), 3)
 
-def plot_graph(sector, year, extent, bfl_values):
-    plt.plot(year, extent, label='Data')
-    plt.plot(year, bfl_values, color='red', label='Best Fit Line')
-    plt.xlabel(f'{month} - Year')
-    plt.ylabel('Extent')
-    plt.title(sector)
-    plt.legend()
-    plt.show()
+def plot_graph(ax, year, extent, bfl_values, month):
+    ax.plot(year, extent, label='Data')
+    ax.plot(year, bfl_values, color='red', label='Best Fit Line')
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Extent')
+    ax.set_title(month)
+    # ax.legend()
 
 month_list = [
     'January',
@@ -67,8 +66,11 @@ df_sea_ice = pd.read_excel(excel_path, None)
 for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
 
     sector = sheet[:-12]
+    
+    fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
+    fig.suptitle(f"{sector} - Sea Ice Extent and ENSO Correlation (1979-2023)")
 
-    for month in month_list:
+    for i, month in enumerate(month_list):
 
         df_sea_ice = pd.read_excel(excel_path, sheet_name=sheet).head(-1).tail(-3).reset_index()
 
@@ -130,7 +132,8 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        plot_graph(sector, year, extent, bfl_values)
+        row, col = divmod(i, 4)
+        plot_graph(axes[row, col], year, extent, bfl_values, month)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
@@ -151,6 +154,9 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
     minima_below_bfl_corr_values.clear()
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
+
+    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
 
 for name, val in max_corr_dict.items():
     print()
