@@ -50,28 +50,39 @@ for region in regions:
     extent = pd.Series(extent_values).astype(float)
     extent.interpolate(method='linear', inplace=True)
 
-    # Butterworth Filter
-    N  = 2    # Filter order
-    Wn = 0.6  # Cutoff frequency
-    B, A = signal.butter(N, Wn, output='ba')
-    extentf = pd.Series(signal.filtfilt(B,A, extent))
+    # # Butterworth Filter
+    # N  = 2    # Filter order
+    # Wn = 0.6  # Cutoff frequency
+    # B, A = signal.butter(N, Wn, output='ba')
+    # extentf = pd.Series(signal.filtfilt(B,A, extent))
+
+    # Possibly erroneous logic
+    # monthly_data = {}
+    # for year in year_list:
+    #     monthly_data[year] = {}
+    #     for month, days in month_days.items():
+    #         start_index = (pd.to_datetime(f"{year}-{month}-01")).dayofyear - 1
+    #         end_index = start_index + days - 1
+    #         monthly_data[year][month] = extentf.iloc[start_index:end_index].mean()
 
     # Reshape to monthly data by averaging daily values
     monthly_data = {}
+    day_counter = 0
     for year in year_list:
         monthly_data[year] = {}
         for month, days in month_days.items():
-            start_index = (pd.to_datetime(f"{year}-{month}-01")).dayofyear - 1
-            end_index = start_index + days - 1
-            monthly_data[year][month] = extentf.iloc[start_index:end_index].mean()
+            if month == "February" and is_leap_year(year):
+                days += 1
+            monthly_data[year][month] = extent.iloc[day_counter:day_counter + days].mean()
+            day_counter += days
 
-    # Convert monthly_data dictionary to DataFrame (optional)
+    # Convert monthly_data dictionary to DataFrame
     df_sea_ice_filt_daily_avg = pd.DataFrame.from_dict(monthly_data, orient="index", columns=month_days.keys()).reset_index()
 
-    # print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\033[0m")
-    # for month in list(month_days.keys()):
+    print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\033[0m")
+    for month in list(month_days.keys()):
 
-    #     curr_corr = round(df_sea_ice_filt_daily_avg[month].corr(df_soi[month], method="pearson"), 3)
+        curr_corr = round(df_sea_ice_filt_daily_avg[month].corr(df_soi[month], method="pearson"), 3)
 
-    #     print(month.ljust(10), end='\t')
-    #     print(("\033[0;32m" if abs(curr_corr) > pearson_threshold else "") + str(curr_corr) + "\033[0m")
+        print(month.ljust(10), end='\t')
+        print(("\033[0;32m" if abs(curr_corr) > pearson_threshold else "") + str(curr_corr) + "\033[0m")
