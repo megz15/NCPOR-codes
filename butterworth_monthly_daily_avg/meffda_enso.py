@@ -1,5 +1,8 @@
 import pandas as pd
+import numpy as np
 import scipy.signal as signal
+
+def is_leap_year(year): return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
 year_list = list(range(1979, 2024))
 regions = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
@@ -9,7 +12,7 @@ corr_values = []
 
 month_days = {
     "January": 31,
-    "February": 29,
+    "February": 28,
     "March": 31,
     "April": 30,
     "May": 31,
@@ -35,7 +38,16 @@ for region in regions:
     df_sea_ice = pd.read_excel(excel_path, sheet_name = region + "-Extent-km^2")
     df_sea_ice.drop(df_sea_ice.columns[[-1, 0, 1, 2]],axis=1,inplace=True)
 
-    extent = pd.Series(df_sea_ice[[year for year in year_list]].values.ravel()).astype(float)
+    # Convert to a 1D Series, excluding February 29 in non-leap years
+    extent_values = []
+    for year in year_list:
+        yearly_data = df_sea_ice[year].values
+        if not is_leap_year(year):
+            # Drop the 59th day (February 29) for non-leap years
+            yearly_data = np.concatenate((yearly_data[:59], yearly_data[60:]))
+        extent_values.extend(yearly_data)
+
+    extent = pd.Series(extent_values).astype(float)
     extent.interpolate(method='linear', inplace=True)
 
     # Butterworth Filter
@@ -56,10 +68,10 @@ for region in regions:
     # Convert monthly_data dictionary to DataFrame (optional)
     df_sea_ice_filt_daily_avg = pd.DataFrame.from_dict(monthly_data, orient="index", columns=month_days.keys()).reset_index()
 
-    print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\033[0m")
-    for month in list(month_days.keys()):
+    # print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\033[0m")
+    # for month in list(month_days.keys()):
 
-        curr_corr = round(df_sea_ice_filt_daily_avg[month].corr(df_soi[month], method="pearson"), 3)
+    #     curr_corr = round(df_sea_ice_filt_daily_avg[month].corr(df_soi[month], method="pearson"), 3)
 
-        print(month.ljust(10), end='\t')
-        print(("\033[0;32m" if abs(curr_corr) > pearson_threshold else "") + str(curr_corr) + "\033[0m")
+    #     print(month.ljust(10), end='\t')
+    #     print(("\033[0;32m" if abs(curr_corr) > pearson_threshold else "") + str(curr_corr) + "\033[0m")
