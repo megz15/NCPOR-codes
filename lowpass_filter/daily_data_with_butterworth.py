@@ -9,7 +9,8 @@ excel_path = "../../data/S_Sea_Ice_Index_Regional_Daily_Data_G02135_v3.0.xlsx"
 df_sea_ice = pd.read_excel(excel_path, sheet_name="Bell-Amundsen-Extent-km^2")
 df_sea_ice.drop(df_sea_ice.columns[[-1, 0, 1, 2]],axis=1,inplace=True)
 
-extent = pd.Series(df_sea_ice[[year for year in year_list]].values.ravel()).astype(float).interpolate(method='linear')
+extent = pd.Series(df_sea_ice[[year for year in year_list]].values.ravel()).astype(float)
+extent.interpolate(method='linear', inplace=True)
 
 # Butterworth Filter
 N  = 2    # Filter order
@@ -18,6 +19,7 @@ B, A = signal.butter(N, Wn, output='ba')
 extentf = pd.Series(signal.filtfilt(B,A, extent))
 residual = extent-extentf
 
+# Make plots
 fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
 fig.suptitle("Sea Ice Extent")
 fig.supylabel('Extent (km^2)')
