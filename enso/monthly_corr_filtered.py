@@ -8,19 +8,21 @@ print("from 1979 to 2023".center(banner_width))
 print("="*banner_width)
 
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 import pandas as pd
 import numpy as np
 
 def Average(lst): return round(sum(lst)/len(lst), 3)
 
-def plot_graph(sector, year, extent, bfl_values):
-    plt.plot(year, extent, label='Data')
-    plt.plot(year, bfl_values, color='red', label='Best Fit Line')
-    plt.xlabel(f'{month} - Year')
-    plt.ylabel('Extent')
-    plt.title(sector)
-    plt.legend()
-    plt.show()
+def plot_graph(ax, year, extent, bfl_values, month):
+    ax.plot(year, extent, label='Data')
+    ax.plot(year, bfl_values, color='red', label='Best Fit Line')
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Extent')
+    ax.set_title(month)
+
+sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
+rel_path = "data/"
 
 month_list = [
     'January',
@@ -54,29 +56,37 @@ max_corr_dict = {
 }
 
 # ENSO Data
-txt_path = "../../data/darwin.anom_.txt"
+txt_path = rel_path + "darwin.anom_.txt"
 columns = ['Year'] + month_list
 
 df_soi = pd.read_csv(txt_path, delim_whitespace=True, names=columns)
 df_soi = df_soi[df_soi['Year']>=1979].head(-1).reset_index()
 
 # Sea Ice Index Data
-excel_path = "../../data/S_Sea_Ice_Index_Regional_Monthly_Data_G02135_v3.0.xlsx"
+excel_path = rel_path + "S_Sea_Ice_Index_Regional_Monthly_Data_G02135_v3.0.xlsx"
+for sector in sectors:
+    
+    # fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
+    # fig.suptitle(f"{sector} - Sea Ice Extent and ENSO Correlation (1979-2023)")
 
-df_sea_ice = pd.read_excel(excel_path, None)
-for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
+    for i, month in enumerate(month_list):
 
-    sector = sheet[:-12]
-
-    for month in month_list:
-
-        df_sea_ice = pd.read_excel(excel_path, sheet_name=sheet).head(-1).tail(-3).reset_index()
+        df_sea_ice = pd.read_excel(excel_path, sheet_name = sector + "-Extent-km^2").head(-1).tail(-3).reset_index()
 
         year = pd.Series(df_sea_ice["Unnamed: 0"]).astype(int)
         extent = pd.Series(df_sea_ice[month]).astype(float)
 
         extent = extent.interpolate(method='linear')
+        
+        # Rank Transformation
         extent = extent.transform("rank")
+
+        # # Butterworth Filter
+        # N  = 2    # Filter order
+        # Wn = 0.6  # Cutoff frequency
+        # B, A = signal.butter(N, Wn, output='ba')
+        # extent = pd.Series(signal.filtfilt(B,A, extent))
+        # # residual = extent-extentf
 
         extent_diff = np.diff(extent, 1)
 
@@ -130,7 +140,8 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        plot_graph(sector, year, extent, bfl_values)
+        # row, col = divmod(i, 4)
+        # plot_graph(axes[row, col], year, extent, bfl_values, month)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
@@ -151,6 +162,8 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
     minima_below_bfl_corr_values.clear()
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
+
+    # plt.show()
 
 for name, val in max_corr_dict.items():
     print()
