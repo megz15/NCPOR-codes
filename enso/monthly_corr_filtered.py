@@ -22,7 +22,7 @@ def plot_graph(ax, year, extent, bfl_values, month):
     ax.set_title(month)
 
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
-rel_path = "data/"
+rel_path = "../../data/"
 
 month_list = [
     'January',
@@ -66,8 +66,8 @@ df_soi = df_soi[df_soi['Year']>=1979].head(-1).reset_index()
 excel_path = rel_path + "S_Sea_Ice_Index_Regional_Monthly_Data_G02135_v3.0.xlsx"
 for sector in sectors:
     
-    # fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
-    # fig.suptitle(f"{sector} - Sea Ice Extent and ENSO Correlation (1979-2023)")
+    fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
+    fig.suptitle(f"{sector} - Sea Ice Extent and ENSO Correlation (1979-2023)")
 
     for i, month in enumerate(month_list):
 
@@ -140,8 +140,8 @@ for sector in sectors:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        # row, col = divmod(i, 4)
-        # plot_graph(axes[row, col], year, extent, bfl_values, month)
+        row, col = divmod(i, 4)
+        plot_graph(axes[row, col], year, extent, bfl_values, month)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
@@ -163,7 +163,7 @@ for sector in sectors:
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
 
-    # plt.show()
+    plt.show()
 
 for name, val in max_corr_dict.items():
     print()
