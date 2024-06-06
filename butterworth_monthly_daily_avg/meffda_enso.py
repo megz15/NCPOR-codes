@@ -51,9 +51,9 @@ for region in regions:
     extent.interpolate(method='linear', inplace=True)
 
     # Butterworth Filter
-    N  = 2    # Filter order
-    Wn = 0.6  # Cutoff frequency
-    B, A = signal.butter(N, Wn, output='ba')
+    N  = 3    # Filter order
+    Wn = 0.1  # Cutoff frequency
+    B, A = signal.butter(N, Wn, btype='lowpass', analog=False)
     extentf = pd.Series(signal.filtfilt(B,A, extent))
 
     date_range = pd.date_range(start='1979-01-01', end='2023-12-31', freq='D')
