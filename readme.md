@@ -12,3 +12,6 @@ Repo to store my python codes for my work at NCPOR in Polar Science for Practice
   <dt>PDO</dt><dd>Pacific Decadal Oscillation</dd>
   <dt>ERA</dt><dd>European Environment Agency</dd>
 </dl>
+
+# CDO commands
+/home/march/NCPOR/software/CDO/cdo-2.4.1/src/cdo outputtab,date,lat,lon,value adaptor.mars.internal.nc > out.csv
