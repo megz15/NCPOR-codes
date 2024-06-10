@@ -21,6 +21,10 @@ with xr.open_dataset(file_path) as ds:
             min(regions[region]), max(regions[region])
         )).mean(dim=['latitude', 'longitude'])
     
-    print(
-        resampled_ds.sel(time=resampled_ds.time.dt.month == month)
-    )
+    resampled_df = resampled_ds.to_dataframe().reset_index()
+    
+    resampled_df['Month'] = resampled_df['time'].dt.month
+    resampled_df['Year'] = resampled_df['time'].dt.year
+    pivot_df = resampled_df.pivot(index='Year', columns='Month', values='str').reset_index()
+
+    print(pivot_df)
