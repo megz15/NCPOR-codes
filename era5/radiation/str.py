@@ -20,7 +20,7 @@ regions = {
     'Pacific': (90, 160)
 }
 
-region = 'Ross'
+region = list(regions.keys())[4]
 rel_path = "../../data/"
 
 year_list = list(range(1979, 2024))
@@ -83,3 +83,14 @@ with xr.open_dataset(nv_path) as ds:
     
     df_nc_resampled_monthly = resampled_df.pivot(index='Year', columns='Month', values='str')
     # df_nc_resampled_monthly.reset_index(drop=True, inplace=True)
+
+print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\033[0m")
+for month in list(range(len(month_days))):
+
+    # curr_corr = round(df_pivot[month].corr(df_soi[month], method="pearson"), 3)
+    curr_corr, p_value = pearsonr(df_extent_resampled_monthly[month + 1], df_nc_resampled_monthly[month + 1])
+    curr_corr = round(curr_corr, 3)
+
+    print(list(month_days.keys())[month].ljust(10), end='\t')
+    # print(("\033[0;32m" if abs(curr_corr) > pearson_threshold else "") + str(curr_corr) + "\033[0m")
+    print(("\033[0;32m" if p_value < 0.05 else "") + str(curr_corr) + "\033[0m")
