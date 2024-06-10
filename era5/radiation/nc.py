@@ -1,15 +1,26 @@
 import xarray as xr
 
+# longitude ranges
 regions = {
-    'Ross': {'lon': (160, -130)},
-    'Bell-Amundsen': {'lon': (-130, -60)},
-    'Weddell': {'lon': (-60, 20)},
-    'Indian': {'lon': (20, 90)},
-    'Pacific': {'lon': (90, 160)}
+    'Ross': (160, -130),
+    'Bell-Amundsen': (-130, -60),
+    'Weddell': (-60, 20),
+    'Indian': (20, 90),
+    'Pacific': (90, 160)
 }
 
-rel_path = "../../data/"
-file_path = rel_path + "netcdf/rad/radiation_1979-2023_monthly_seaice.nc"
+region = 'Ross'
+month  = 1 # January
+
+rel_path = '../../data/'
+file_path = rel_path + 'netcdf/rad/radiation_1979-2023_monthly_seaice.nc'
 
 with xr.open_dataset(file_path) as ds:
-    print(ds["str"].sel(longitude = slice(*regions['Ross']['lon'])))
+    resampled_ds = ds['str'].sel(
+        longitude = slice(
+            min(regions[region]), max(regions[region])
+        )).mean(dim=['latitude', 'longitude'])
+    
+    print(
+        resampled_ds.sel(time=resampled_ds.time.dt.month == month)
+    )
