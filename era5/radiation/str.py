@@ -109,4 +109,4 @@ for region in list(regions.keys()):
         ax.grid(True)
 
     # plt.tight_layout()
-    plt.show()
+    # plt.show()

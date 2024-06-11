@@ -66,8 +66,8 @@ df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).reset_index()
 excel_path = rel_path + "S_Sea_Ice_Index_Regional_Monthly_Data_G02135_v3.0.xlsx"
 for sector in sectors:
     
-    # fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
-    # fig.suptitle(f"{sector} - Sea Ice Extent and PDO Correlation (1979-2023)")
+    fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
+    fig.suptitle(f"{sector} - Sea Ice Extent and PDO Correlation (1979-2023)")
 
     for i, month in enumerate(month_list):
 
@@ -96,8 +96,12 @@ for sector in sectors:
         local_maxima_indices = np.where((extent_diff[:-1] > 0) & (extent_diff[1:] < 0))[0] + 1
         local_maxima_values = extent[local_maxima_indices]
 
-        m, b = np.polyfit(year, extent, 1)
-        bfl_values = m*year + b
+        # m, b = np.polyfit(year, extent, 1)
+        # bfl_values = m*year + b
+
+        # nth-degree polynomial fit
+        coefficients = np.polyfit(year, extent, 1)
+        bfl_values = np.polyval(coefficients, year)
 
         minima_below_bfl_indices = [i for i in local_minima_indices if extent[i] < bfl_values[i]]
         minima_below_bfl_values = extent[minima_below_bfl_indices]
@@ -140,8 +144,8 @@ for sector in sectors:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        # row, col = divmod(i, 4)
-        # plot_graph(axes[row, col], year, extent, bfl_values, month)
+        row, col = divmod(i, 4)
+        plot_graph(axes[row, col], year, extent, bfl_values, month)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
@@ -163,7 +167,7 @@ for sector in sectors:
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
 
-    # plt.show()
+    plt.show()
 
 for name, val in max_corr_dict.items():
     print()

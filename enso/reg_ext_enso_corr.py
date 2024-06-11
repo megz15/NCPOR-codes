@@ -88,8 +88,8 @@ for sheet in [x for x in df_sea_ice.keys() if "Extent" in x]:
         local_maxima_indices = np.where((extent_diff[:-1] > 0) & (extent_diff[1:] < 0))[0] + 1
         local_maxima_values = extent[local_maxima_indices]
 
-        m, b = np.polyfit(year, extent, 1)
-        bfl_values = m*year + b
+        coefficients = np.polyfit(year, extent, 1)
+        bfl_values = np.polyval(coefficients, year)
 
         minima_below_bfl_indices = [i for i in local_minima_indices if extent[i] < bfl_values[i]]
         minima_below_bfl_values = extent[minima_below_bfl_indices]
