@@ -86,11 +86,15 @@ for region in list(regions.keys()):
         
         df_nc_resampled_monthly = resampled_df.pivot(index='Year', columns='Month', values='ssr')
 
-    fig, axes = plt.subplots(3, 4)
+    fig, axes = plt.subplots(3, 4, sharex=True, sharey=True)
     axes = axes.flatten()
 
     print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\tp-Value\033[0m")
     for month in list(range(len(month_days))):
+
+        # Best fit
+        coefficients = np.polyfit(df_extent_resampled_monthly.index, df_extent_resampled_monthly[month + 1], 4)
+        bfl_values = np.polyval(coefficients, df_extent_resampled_monthly.index)
 
         curr_corr, p_value = pearsonr(df_extent_resampled_monthly[month + 1], df_nc_resampled_monthly[month + 1])
         curr_corr = round(curr_corr, 3)
@@ -103,9 +107,10 @@ for region in list(regions.keys()):
         # Plotting
         ax = axes[month]
         ax.plot(df_extent_resampled_monthly.index, df_extent_resampled_monthly[month + 1], label='Sea Ice Extent', color='b')
-        ax.plot(df_nc_resampled_monthly.index, df_nc_resampled_monthly[month + 1], label='Surface Radiation', color='r')
+        ax.plot(df_extent_resampled_monthly.index, bfl_values, label='Extent Best Fit', color='r')
+        # ax.plot(df_nc_resampled_monthly.index, df_nc_resampled_monthly[month + 1], label='Surface Radiation', color='r')
         ax.set_title(f"{region} - {list(month_days.keys())[month]}")
         ax.legend()
         ax.grid(True)
 
-    # plt.show()
+    plt.show()
