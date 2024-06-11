@@ -13,13 +13,13 @@ bw_order  = 1     # Filter order
 bw_cfreq  = 0.4   # Cutoff frequency
 B, A = signal.butter(bw_order, bw_cfreq, btype='lowpass', analog=False)
 
-# Longitude ranges
+# Longitude and Latitude ranges
 regions = {
-    'Ross': (160, -130),
-    'Bell-Amundsen': (-130, -60),
-    'Weddell': (-60, 20),
-    'Indian': (20, 90),
-    'Pacific': (90, 160)
+    'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
+    'Bell-Amundsen': {'lon': (-130, -60), 'lat': (-50, -72)},
+    'Weddell': {'lon': (-60, 20), 'lat': (-50, -72)},
+    'Indian': {'lon': (20, 90), 'lat': (-50, -72)},
+    'Pacific': {'lon': (90, 160), 'lat': (-50, -72)}
 }
 
 rel_path = "../../data/"
@@ -74,7 +74,9 @@ for region in list(regions.keys()):
     with xr.open_dataset(nv_path) as ds:
         resampled_ds = ds['str'].sel(
             longitude = slice(
-                min(regions[region]), max(regions[region])
+                min(regions[region]['lon']), max(regions[region]['lon'])
+            ), latitude = slice(
+                max(regions[region]['lat']), min(regions[region]['lat'])
             )).mean(dim=['latitude', 'longitude'])
         
         resampled_df = resampled_ds.to_dataframe().reset_index()
