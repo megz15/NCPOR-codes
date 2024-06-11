@@ -108,6 +108,26 @@ for region in list(regions.keys()):
         ax = axes[month]
         ax.plot(df_extent_resampled_monthly.index, df_extent_resampled_monthly[month + 1], label='Sea Ice Extent', color='b')
         ax.plot(df_extent_resampled_monthly.index, bfl_values, label='Extent Best Fit', color='r')
+
+        # Identifying minimas and maximas
+        residuals = df_extent_resampled_monthly[month + 1] - bfl_values
+        minima_indices = signal.argrelextrema(residuals.values, np.less)[0]
+        maxima_indices = signal.argrelextrema(residuals.values, np.greater)[0]
+
+        minimas = [(i, residuals.values[i]) for i in minima_indices if residuals.values[i] < 0]
+        maximas = [(i, residuals.values[i]) for i in maxima_indices if residuals.values[i] > 0]
+
+        minimas_sorted = sorted(minimas, key=lambda x: x[1])
+        maximas_sorted = sorted(maximas, key=lambda x: x[1], reverse=True)
+
+        for idx, (i, _) in enumerate(minimas_sorted):
+            ax.annotate(f'A{idx+1}', xy=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i]), 
+                        xytext=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i] - 0.1))
+
+        for idx, (i, _) in enumerate(maximas_sorted):
+            ax.annotate(f'B{idx+1}', xy=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i]), 
+                        xytext=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i] + 0.1))
+
         # ax.plot(df_nc_resampled_monthly.index, df_nc_resampled_monthly[month + 1], label='Surface Radiation', color='r')
         ax.set_title(f"{region} - {list(month_days.keys())[month]}")
         ax.legend()
