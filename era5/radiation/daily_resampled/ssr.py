@@ -92,6 +92,9 @@ for region in list(regions.keys()):
     print(f"\n\033[0;31m{region.ljust(10)}\t\033[0;33mCorr\tp-Value\033[0m")
     for month in list(range(len(month_days))):
 
+        df_extent_resampled_monthly[month + 1] = df_extent_resampled_monthly[month + 1].transform("rank")
+        df_nc_resampled_monthly[month + 1] = df_nc_resampled_monthly[month + 1].transform("rank")
+
         # Best fit
         coefficients = np.polyfit(df_extent_resampled_monthly.index, df_extent_resampled_monthly[month + 1], 4)
         bfl_values = np.polyval(coefficients, df_extent_resampled_monthly.index)
@@ -107,7 +110,7 @@ for region in list(regions.keys()):
         # Plotting
         ax = axes[month]
         ax.plot(df_extent_resampled_monthly.index, df_extent_resampled_monthly[month + 1], label='Sea Ice Extent', color='b')
-        ax.plot(df_extent_resampled_monthly.index, bfl_values, label='Extent Best Fit', color='r')
+        ax.plot(df_extent_resampled_monthly.index, bfl_values, label='Extent Best Fit', color='g')
 
         # Identifying minimas and maximas
         residuals = df_extent_resampled_monthly[month + 1] - bfl_values
@@ -128,7 +131,7 @@ for region in list(regions.keys()):
             ax.annotate(f'B{idx+1}', xy=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i]), 
                         xytext=(df_extent_resampled_monthly.index[i], df_extent_resampled_monthly[month + 1].iloc[i] + 0.1))
 
-        # ax.plot(df_nc_resampled_monthly.index, df_nc_resampled_monthly[month + 1], label='Surface Radiation', color='r')
+        ax.plot(df_nc_resampled_monthly.index, df_nc_resampled_monthly[month + 1], label='Surface Radiation', color='r')
         ax.set_title(f"{region} - {list(month_days.keys())[month]}")
         ax.legend()
         ax.grid(True)

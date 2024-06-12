@@ -1,17 +1,24 @@
 import xarray as xr
 import pandas as pd
-import numpy as np
-import scipy.signal as signal
 from scipy.stats import pearsonr
-import matplotlib.pyplot as plt
 
 # Longitude and Latitude ranges
 regions = {
-    'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
-    'Bell-Amundsen': {'lon': (-130, -60), 'lat': (-50, -72)},
-    'Weddell': {'lon': (-60, 20), 'lat': (-50, -72)},
-    'Indian': {'lon': (20, 90), 'lat': (-50, -72)},
-    'Pacific': {'lon': (90, 160), 'lat': (-50, -72)}
+    'Ross':{
+        'lon': (160, -130),
+        'lat': (-50, -72)
+    }, 'Bell-Amundsen': {
+        'lon': (-130, -60),
+        'lat': (-50, -72)
+    }, 'Weddell': {
+        'lon': (-60, 20),
+        'lat': (-50, -72)
+    }, 'Indian': {
+        'lon': (20, 90),
+        'lat': (-50, -72)
+    }, 'Pacific': {
+        'lon': (90, 160),
+        'lat': (-50, -72)}
 }
 
 rel_path = "../../data/"
@@ -63,7 +70,8 @@ for region in list(regions.keys()):
         extent = pd.Series(df_sea_ice[month]).astype(float)
 
         extent = extent.interpolate(method='linear')
-        # extent = extent.transform("rank")
+        extent = extent.transform("rank")
+        df_nc_resampled_monthly = df_nc_resampled_monthly.transform("rank")
 
         curr_corr, p_value = pearsonr(extent, df_nc_resampled_monthly[month_list.index(month) + 1])
         curr_corr = round(curr_corr, 3)
