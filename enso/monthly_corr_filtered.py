@@ -11,14 +11,15 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 import pandas as pd
 import numpy as np
+from scipy.stats import pearsonr
 
 def Average(lst): return round(sum(lst)/len(lst), 3)
 
-def plot_graph(ax, year, extent, bfl_values, month):
-    ax.plot(year, extent, label='Data')
-    ax.plot(year, bfl_values, color='red', label='Best Fit Line')
-    ax.set_xlabel('Year')
-    ax.set_ylabel('Extent')
+def plot_graph(ax, year, extent_values, bfl_values, soi_values, month):
+    ax.plot(year, extent_values, color='b', label='Extent')
+    ax.plot(year, bfl_values, color='g', label='Best Fit Line')
+    ax.plot(year, soi_values, color='r', label='ENSO')
+    ax.legend()
     ax.set_title(month)
 
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
@@ -81,12 +82,12 @@ for sector in sectors:
         # Rank Transformation
         extent = extent.transform("rank")
 
-        # # Butterworth Filter
-        # N  = 2    # Filter order
-        # Wn = 0.6  # Cutoff frequency
-        # B, A = signal.butter(N, Wn, output='ba')
-        # extent = pd.Series(signal.filtfilt(B,A, extent))
-        # # residual = extent-extentf
+        # Butterworth Filter
+        N  = 1    # Filter order
+        Wn = 0.4  # Cutoff frequency
+        B, A = signal.butter(N, Wn, output='ba')
+        extent = pd.Series(signal.filtfilt(B,A, extent))
+        # residual = extent-extentf
 
         extent_diff = np.diff(extent, 1)
 
@@ -96,7 +97,7 @@ for sector in sectors:
         local_maxima_indices = np.where((extent_diff[:-1] > 0) & (extent_diff[1:] < 0))[0] + 1
         local_maxima_values = extent[local_maxima_indices]
 
-        coefficients = np.polyfit(year, extent, 1)
+        coefficients = np.polyfit(year, extent, 5)
         bfl_values = np.polyval(coefficients, year)
 
         minima_below_bfl_indices = [i for i in local_minima_indices if extent[i] < bfl_values[i]]
@@ -105,7 +106,11 @@ for sector in sectors:
         maxima_above_bfl_indices = [i for i in local_maxima_indices if extent[i] > bfl_values[i]]
         maxima_above_bfl_values = extent[maxima_above_bfl_indices]
 
-        curr_corr = round(extent.corr(df_soi[month], method='pearson'), 3)
+        # curr_corr = round(extent.corr(df_soi[month], method='pearson'), 3)
+        curr_corr, p_val_curr = pearsonr(extent, df_soi[month])
+        curr_corr = round(curr_corr, 3)
+        p_val_curr = round(p_val_curr, 3)
+
         if abs(curr_corr) > abs(max_corr_dict["max_corr"]['value']):
             max_corr_dict["max_corr"]['value'] = curr_corr
             max_corr_dict["max_corr"]['month'] = month
@@ -140,14 +145,15 @@ for sector in sectors:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        row, col = divmod(i, 4)
-        plot_graph(axes[row, col], year, extent, bfl_values, month)
+        # row, col = divmod(i, 4)
+        # plot_graph(axes[row, col], year, extent, bfl_values, df_soi[month], month)
 
-    print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tMin\tMinBB\tMax\tMaxAB\033[0m")
+    print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tp-Value\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
         
         print(month_list[i].ljust(10), end='\t')
-        print(("\033[0;32m" if abs(corr_values[i]) > pearson_threshold else "") + str(corr_values[i]) + "\033[0m", end='\t')
+        print(("\033[0;32m" if p_val_curr < 0.1 else "") + str(corr_values[i]) + "\033[0m", end='\t')
+        print(p_val_curr, end='\t')
         
         print(("\033[0;32m" if abs(minima_corr_values[i]) > pearson_threshold else "") + str(minima_corr_values[i]) + "\033[0m", end='\t')
         print(("\033[0;32m" if abs(minima_below_bfl_corr_values[i]) > pearson_threshold else "") + str(minima_below_bfl_corr_values[i]) + "\033[0m", end='\t')
@@ -155,7 +161,7 @@ for sector in sectors:
         print(("\033[0;32m" if abs(maxima_corr_values[i]) > pearson_threshold else "") + str(maxima_corr_values[i]) + "\033[0m", end='\t')
         print(("\033[0;32m" if abs(maxima_above_bfl_corr_values[i]) > pearson_threshold else "") + str(maxima_above_bfl_corr_values[i]) + "\033[0m", end='\n')
     
-    print(f"\033[0;33mAverage\t\t{Average(corr_values)}\t{Average(minima_corr_values)}\t{Average(minima_below_bfl_corr_values)}\t{Average(maxima_corr_values)}\t{Average(maxima_above_bfl_corr_values)}\033[0m")
+    print(f"\033[0;33mAverage\t\t{Average(corr_values)}\t\t{Average(minima_corr_values)}\t{Average(minima_below_bfl_corr_values)}\t{Average(maxima_corr_values)}\t{Average(maxima_above_bfl_corr_values)}\033[0m")
 
     corr_values.clear()
     minima_corr_values.clear()
@@ -163,7 +169,7 @@ for sector in sectors:
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
 
-    plt.show()
+    # plt.show()
 
 for name, val in max_corr_dict.items():
     print()
