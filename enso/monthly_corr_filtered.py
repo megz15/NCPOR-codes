@@ -82,12 +82,12 @@ for sector in sectors:
         # Rank Transformation
         extent = extent.transform("rank")
 
-        # Butterworth Filter
-        N  = 1    # Filter order
-        Wn = 0.4  # Cutoff frequency
-        B, A = signal.butter(N, Wn, output='ba')
-        extent = pd.Series(signal.filtfilt(B,A, extent))
-        # residual = extent-extentf
+        # # Butterworth Filter
+        # N  = 1    # Filter order
+        # Wn = 0.4  # Cutoff frequency
+        # B, A = signal.butter(N, Wn, output='ba')
+        # extent = pd.Series(signal.filtfilt(B,A, extent)) - extent
+        # # residual = extent-extentf
 
         extent_diff = np.diff(extent, 1)
 
@@ -145,8 +145,8 @@ for sector in sectors:
             max_corr_dict["max_maxima_above_bfl_corr"]['sector'] = sector
         maxima_above_bfl_corr_values.append(curr_maxima_above_bfl_corr)
 
-        # row, col = divmod(i, 4)
-        # plot_graph(axes[row, col], year, extent, bfl_values, df_soi[month], month)
+        row, col = divmod(i, 4)
+        plot_graph(axes[row, col], year, extent, bfl_values, df_soi[month], month)
 
     print(f"\n\033[0;31m{sector.ljust(10)}\t\033[0;33mCorr\tp-Value\tMin\tMinBB\tMax\tMaxAB\033[0m")
     for i in range(len(month_list)):
@@ -169,7 +169,7 @@ for sector in sectors:
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
 
-    # plt.show()
+    plt.show()
 
 for name, val in max_corr_dict.items():
     print()
