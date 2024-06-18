@@ -154,8 +154,8 @@ for region in list(regions.keys()):
         ax.grid(True)
 
     # plt.tight_layout()
-    plt.show()
+    # plt.show()
 
-# import json
-# with open("multivar_analysis/get_csv/data/ssr.json", 'w') as f:
-#     json.dump(json_export, f)
+import json
+with open("multivar_analysis/get_csv/data/ssr.json", 'w') as f:
+    json.dump(json_export, f)
