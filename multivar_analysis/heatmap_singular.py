@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-dataset = ["enso", "pdo", "ssr", "str"][0]
+dataset = ["enso", "pdo", "ssr", "str"][2]
 
 with open(f'multivar_analysis/get_csv/data/{dataset}.json') as f:
     data = json.load(f)
@@ -27,13 +27,13 @@ pval_df = pd.DataFrame(pval_data, index=regions, columns=months)
 
 plt.figure(figsize=(15, 10))
 
-sns.heatmap(corr_df, annot=False, cmap='coolwarm', center=0, cbar_kws={'label': 'Correlation Coefficient'}, square=True)
+sns.heatmap(corr_df, annot=False, cmap='coolwarm', center=0, cbar_kws={'label': 'Correlation Coefficient', "shrink": 0.5}, square=True)
 
 for i in range(corr_df.shape[0]):
     for j in range(corr_df.shape[1]):
         corr_value = corr_df.iloc[i, j]
         pval_value = pval_df.iloc[i, j]
-        text = f'{corr_value:.2f}\n({pval_value:.3f})'
+        text = f'{corr_value}\n({pval_value})'
         
         if pval_value < 0.05:
             bbox_props = dict(boxstyle="round,pad=0.2", facecolor="lime", edgecolor="none")
@@ -42,9 +42,9 @@ for i in range(corr_df.shape[0]):
         
         plt.text(j + 0.5, i + 0.5, text, ha='center', va='center', color='black', bbox=bbox_props, fontsize=14)
 
-plt.title(f'Correlation Coefficients and p-values between Antarctic Sea Ice Extent and {dataset.upper()}')
-plt.xlabel('Month')
-plt.ylabel('Region')
+plt.title(f'Correlation Coefficients and p-values between Antarctic Sea Ice Extent and {dataset.upper()}', fontsize=14)
+plt.xlabel('Month', fontsize=14)
+plt.ylabel('Region', fontsize=14)
 
 plt.tight_layout()
 plt.show()

@@ -11,7 +11,7 @@ def plot_graph(ax, year, extent_values, bfl_seaice, pdo_values, bfl_pdo, month):
     ax.plot(year, bfl_seaice, color='g', label='Extent Best Fit')
     ax.plot(year, pdo_values, color='r', label='PDO')
     ax.plot(year, bfl_pdo, color='y', label='PDO Best Fit')
-    ax.legend()
+    # ax.legend()
     ax.set_title(month)
 
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
@@ -79,8 +79,8 @@ for sector in sectors:
         Wn = 0.4  # Cutoff frequency
         B, A = signal.butter(N, Wn, output='ba')
 
-        extent = pd.Series(signal.filtfilt(B,A, extent))
-        df_pdo[month] = pd.Series(signal.filtfilt(B,A, df_pdo[month]))
+        # extent = pd.Series(signal.filtfilt(B,A, extent)) - extent
+        # df_pdo[month] = pd.Series(signal.filtfilt(B,A, df_pdo[month])) - df_pdo[month]
         
         # Rank Transformation
         extent = extent.transform("rank")
@@ -160,8 +160,10 @@ for sector in sectors:
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
 
-    # plt.show()
+    handles, labels = plt.gca().get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper right')
+    plt.show()
 
-import json
-with open("multivar_analysis/get_csv/data/pdo.json", 'w') as f:
-    json.dump(json_export, f)
+# import json
+# with open("multivar_analysis/get_csv/data/pdo.json", 'w') as f:
+#     json.dump(json_export, f)

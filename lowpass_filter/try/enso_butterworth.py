@@ -12,8 +12,8 @@ year = pd.Series(df_sea_ice["Unnamed: 0"]).astype(int)
 extent = pd.Series(df_sea_ice["January"]).astype(float)
 extent = extent.interpolate(method='linear')
 
-N  = 2    # Filter order
-Wn = 0.6  # Cutoff frequency
+N  = 1    # Filter order
+Wn = 0.4  # Cutoff frequency
 B, A = signal.butter(N, Wn, output='ba')
 
 extentf = signal.filtfilt(B,A, extent)
@@ -24,13 +24,13 @@ ax1 = fig.add_subplot(211)
 plt.plot(year, extent, 'b-')
 plt.plot(year, extentf, 'r-',linewidth=2)
 plt.legend(['Original','Filtered'])
-plt.xlabel("Year")
-plt.title("Sea Ice Extent")
+plt.title("Sea Ice Extent for January over the Ross Sea region")
 ax1.axes.get_xaxis().set_visible(False)
 
 ax1 = fig.add_subplot(212)
 plt.plot(year,extent-extentf, 'b-')
-plt.xlabel("Year")
 plt.legend(['Residuals'])
 
+fig.supxlabel("Year")
+fig.supylabel("Extent (km^2)")
 plt.show()

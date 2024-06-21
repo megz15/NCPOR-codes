@@ -11,7 +11,7 @@ def plot_graph(ax, year, extent_values, bfl_seaice, soi_values, bfl_soi, month):
     ax.plot(year, bfl_seaice, color='g', label='Extent Best Fit')
     ax.plot(year, soi_values, color='r', label='ENSO')
     ax.plot(year, bfl_soi, color='y', label='ENSO Best Fit')
-    ax.legend()
+    # ax.legend()
     ax.set_title(month)
 
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
@@ -158,6 +158,9 @@ for sector in sectors:
     minima_below_bfl_corr_values.clear()
     maxima_corr_values.clear()
     maxima_above_bfl_corr_values.clear()
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper right')
 
     plt.show()
 

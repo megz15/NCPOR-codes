@@ -96,11 +96,11 @@ for region in list(regions.keys()):
     for month in list(range(len(month_days))):
 
         # Applying butterworth filter
-        bworth_filt_seaice = pd.Series(signal.filtfilt(B,A, df_extent_resampled_monthly[month + 1]))
-        bworth_filt_str = pd.Series(signal.filtfilt(B,A, df_nc_resampled_monthly[month + 1]))
+        # bworth_filt_seaice = pd.Series(signal.filtfilt(B,A, df_extent_resampled_monthly[month + 1]))
+        # bworth_filt_str = pd.Series(signal.filtfilt(B,A, df_nc_resampled_monthly[month + 1]))
         
-        # bworth_filt_seaice = df_extent_resampled_monthly[month + 1]
-        # bworth_filt_str  = df_nc_resampled_monthly[month + 1]
+        bworth_filt_seaice = df_extent_resampled_monthly[month + 1]
+        bworth_filt_str  = df_nc_resampled_monthly[month + 1]
 
         bworth_filt_seaice = bworth_filt_seaice.transform("rank")
         bworth_filt_str = bworth_filt_str.transform("rank")
@@ -150,12 +150,13 @@ for region in list(regions.keys()):
         ax.plot(df_nc_resampled_monthly.index, bworth_filt_str, label='Surface Radiation', color='r')
         ax.plot(df_nc_resampled_monthly.index, bfl_values_str, label='Radiation Best Fit', color='y')
         ax.set_title(f"{region} - {list(month_days.keys())[month]}")
-        ax.legend()
+        # ax.legend()
         ax.grid(True)
 
-    # plt.tight_layout()
-    # plt.show()
+    handles, labels = plt.gca().get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper right')
+    plt.show()
 
-import json
-with open("multivar_analysis/get_csv/data/str.json", 'w') as f:
-    json.dump(json_export, f)
+# import json
+# with open("multivar_analysis/get_csv/data/str.json", 'w') as f:
+#     json.dump(json_export, f)
