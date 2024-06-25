@@ -1,7 +1,8 @@
 from scipy.stats import pearsonr
 import scipy.signal as signal
 import pandas as pd
-from sklearn import linear_model
+import statsmodels.api as sm
+from sklearn.preprocessing import StandardScaler
 
 # Parameters
 
@@ -42,9 +43,6 @@ dataset_path = rel_path + "ersst.v5.pdo.dat"
 df_pdo = pd.read_csv(dataset_path, delim_whitespace=True, names=columns)
 df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).drop('Year', axis=1).reset_index(drop=True)
 
-print(df_soi)
-print(df_pdo)
-
 # Dependent Variable (DV)
 
 # Sea Ice Index Data
@@ -53,5 +51,36 @@ for sector in list(sectors.keys()):
     sectors[sector] = pd.read_excel(dataset_path, sheet_name = sector + "-Extent-km^2")[month_list].head(-1).tail(-3).reset_index(drop=True).apply(pd.to_numeric)
     sectors[sector] = sectors[sector].interpolate(method='linear')
 
-print(sectors)
-exit()
+dv = {}
+for month in month_list:
+    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month]})
+
+# Standardizing dv values
+scaler = StandardScaler()
+
+for month, df in dv.items():
+    dv[month] = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+
+def perform_mlr(iv, dv):
+    results = {}
+    for month in iv.columns:
+        x = dv[month]
+        y = iv[month]
+        
+        x = sm.add_constant(x)
+        model = sm.OLS(y, x).fit()
+
+        results[month] = model.summary()
+    return results
+
+results = {}
+for region, iv in sectors.items():
+    results[region] = perform_mlr(iv, dv)
+
+for region, summaries in results.items():
+    print(f"Results for {region} region:\n")
+    for month, summary in summaries.items():
+        print(f"Month: {month}")
+        print(summary)
+        print("\n")
+    exit()
