@@ -62,7 +62,7 @@ for month, df in dv.items():
     dv[month] = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
 def perform_mlr(iv, dv):
-    results = {}
+    coeffs = {}
     for month in iv.columns:
         x = dv[month]
         y = iv[month]
@@ -70,17 +70,15 @@ def perform_mlr(iv, dv):
         x = sm.add_constant(x)
         model = sm.OLS(y, x).fit()
 
-        results[month] = model.summary()
-    return results
+        coeffs[month] = model.params
+    return coeffs
 
-results = {}
+coeffs = {}
 for region, iv in sectors.items():
-    results[region] = perform_mlr(iv, dv)
+    coeffs[region] = perform_mlr(iv, dv)
 
-for region, summaries in results.items():
-    print(f"Results for {region} region:\n")
-    for month, summary in summaries.items():
-        print(f"Month: {month}")
-        print(summary)
-        print("\n")
-    exit()
+for region, coeffs in coeffs.items():
+    print(f"\nEquations for {region} region:")
+    for month, coeff in coeffs.items():
+        equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO)"
+        print(f"{month}: {equation}")
