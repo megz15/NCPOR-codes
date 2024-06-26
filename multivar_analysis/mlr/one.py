@@ -72,6 +72,24 @@ for sector in list(sectors.keys()):
         df_ssr = df_ssr.pivot(index='Year', columns='Month', values='ssr')
         df_ssr.reset_index(inplace=True)
 
+    # STR Data
+    dataset_path = rel_path + 'netcdf/rad/radiation_1979-2023_monthly_seaice.nc'
+    with xr.open_dataset(dataset_path) as ds:
+        resampled_ds = ds['str'].sel(
+            longitude = slice(
+                min(regions[sector]['lon']), max(regions[sector]['lon'])
+            ), latitude = slice(
+                max(regions[sector]['lat']), min(regions[sector]['lat'])
+            )).mean(dim=['latitude', 'longitude'])
+        
+        df_str = resampled_ds.to_dataframe().reset_index()
+        
+        df_str['Year'] = df_str['time'].dt.year
+        df_str['Month'] = df_str['time'].dt.strftime('%B')
+        
+        df_str = df_str.pivot(index='Year', columns='Month', values='str')
+        df_str.reset_index(inplace=True)
+
     # Dependent Variable (DV)
 
     # Sea Ice Index Data
@@ -82,7 +100,7 @@ for sector in list(sectors.keys()):
 
 dv = {}
 for month in month_list:
-    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "SSR": df_ssr[month]})
+    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "SSR": df_ssr[month], "STR": df_str[month]})
 
 # Standardizing dv values
 scaler = StandardScaler()
@@ -99,7 +117,7 @@ def perform_mlr(iv, dv):
         model = linear_model.LinearRegression()
         model.fit(x, y)
 
-        coeffs[month] = {'const': model.intercept_, 'ENSO': model.coef_[0], 'PDO': model.coef_[1], 'SSR': model.coef_[2]}
+        coeffs[month] = {'const': model.intercept_, 'ENSO': model.coef_[0], 'PDO': model.coef_[1], 'SSR': model.coef_[2], 'STR': model.coef_[3]}
     return coeffs
 
 coeffs = {}
@@ -109,5 +127,5 @@ for region, iv in sectors.items():
 for region, coeffs in coeffs.items():
     print(f"\nEquations for {region} region:")
     for month, coeff in coeffs.items():
-        equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO) + {coeff['SSR']}*(SSR)"
+        equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO) + {coeff['SSR']}*(SSR) + {coeff['STR']}*(STR)"
         print(f"{month}: {equation}")
