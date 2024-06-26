@@ -117,15 +117,28 @@ def perform_mlr(iv, dv):
         model = linear_model.LinearRegression()
         model.fit(x, y)
 
-        coeffs[month] = {'const': model.intercept_, 'ENSO': model.coef_[0], 'PDO': model.coef_[1], 'SSR': model.coef_[2], 'STR': model.coef_[3]}
+        # coeffs[month] = {'const': model.intercept_, 'ENSO': model.coef_[0], 'PDO': model.coef_[1], 'SSR': model.coef_[2], 'STR': model.coef_[3]}
+
+        y_pred = model.predict(x)
+        coeffs[month] = y_pred
     return coeffs
 
 coeffs = {}
 for region, iv in sectors.items():
     coeffs[region] = perform_mlr(iv, dv)
 
-for region, coeffs in coeffs.items():
-    print(f"\nEquations for {region} region:")
-    for month, coeff in coeffs.items():
-        equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO) + {coeff['SSR']}*(SSR) + {coeff['STR']}*(STR)"
-        print(f"{month}: {equation}")
+# for region, coeffs in coeffs.items():
+#     print(f"\nEquations for {region} region:")
+#     for month, coeff in coeffs.items():
+#         equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO) + {coeff['SSR']}*(SSR) + {coeff['STR']}*(STR)"
+#         print(f"{month}: {equation}")
+
+# Predictions
+for region, pred_dict in coeffs.items():
+    print(f"Predictions for {region} region:\n")
+    for month, pred in pred_dict.items():
+        actual = sectors[region][month]
+        comparison_df = pd.DataFrame({'Actual': actual, 'Predicted': pred})
+        print(f"Month: {month}")
+        print(comparison_df)
+        print("\n")
