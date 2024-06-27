@@ -1,7 +1,7 @@
 import scipy.signal as signal
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn import linear_model
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.linear_model import LinearRegression
 import xarray as xr
 
 # Parameters
@@ -114,12 +114,22 @@ def perform_mlr(iv, dv):
         x = dv[month]
         y = iv[month]
 
-        model = linear_model.LinearRegression()
-        model.fit(x, y)
+        poly = PolynomialFeatures(degree=1)
+        x_poly = poly.fit_transform(x)
 
-        # coeffs[month] = {'const': model.intercept_, 'ENSO': model.coef_[0], 'PDO': model.coef_[1], 'SSR': model.coef_[2], 'STR': model.coef_[3]}
+        model = LinearRegression()
+        model.fit(x_poly, y)
 
-        y_pred = model.predict(x)
+        # coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
+        # del coeffs[month]['1']
+        #     # 'ENSO': model.coef_[1],
+        #     # 'PDO': model.coef_[2],
+        #     # 'SSR': model.coef_[3],
+        #     # 'STR': model.coef_[4],
+        
+        # coeffs[month]['const'] = model.intercept_
+
+        y_pred = model.predict(x_poly)
         coeffs[month] = y_pred
     return coeffs
 
@@ -128,10 +138,9 @@ for region, iv in sectors.items():
     coeffs[region] = perform_mlr(iv, dv)
 
 # for region, coeffs in coeffs.items():
-#     print(f"\nEquations for {region} region:")
+#     print(f"\n\nEquations for {region} region:")
 #     for month, coeff in coeffs.items():
-#         equation = f"Sea Ice Extent = {coeff['const']} + {coeff['ENSO']}*(ENSO) + {coeff['PDO']}*(PDO) + {coeff['SSR']}*(SSR) + {coeff['STR']}*(STR)"
-#         print(f"{month}: {equation}")
+#         print(f'\n{month}: ' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff])[:-8])
 
 # Predictions
 for region, pred_dict in coeffs.items():
