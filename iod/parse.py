@@ -27,7 +27,7 @@ columns = ['Year'] + month_list
 # IOD Data
 dataset_path = rel_path + "dmi.had.long.data"
 df_iod = pd.read_csv(dataset_path, delim_whitespace=True, names=columns, skiprows=1, skipfooter=8, engine='python')
-df_iod = df_iod[df_iod['Year']>=1979].drop('Year', axis=1).reset_index(drop=True)
+df_iod = df_iod[df_iod['Year']>=1979].reset_index(drop=True)
 
 # Apply butterworth filter
 for month in month_list:
