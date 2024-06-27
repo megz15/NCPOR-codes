@@ -66,5 +66,5 @@ for sector in list(sectors.keys()):
 
 df_ssr = pd.concat(df_ssr_list, ignore_index=True)
 
-df_ssr.to_pickle('era5/radiation/pickle/ssr.pkl')
+df_ssr.to_pickle('pickles/ssr.pkl')
 # print(df_ssr)

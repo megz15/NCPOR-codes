@@ -33,6 +33,6 @@ df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).reset_index(drop=True)
 for month in month_list:
     df_pdo[month] = filtfilt(B, A, df_pdo[month])
 
-df_pdo.to_pickle('pdo/pdo.pkl')
+df_pdo.to_pickle('pickles/pdo.pkl')
 
 # print(df_pdo)

@@ -33,6 +33,6 @@ df_soi = df_soi[df_soi['Year']>=1979].head(-1).reset_index(drop=True)
 for month in month_list:
     df_soi[month] = filtfilt(B, A, df_soi[month])
 
-df_soi.to_pickle('enso/soi.pkl')
+df_soi.to_pickle('pickles/soi.pkl')
 
 # print(df_soi)
