@@ -3,8 +3,12 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 import xarray as xr
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Parameters
+
+poly_deg = 2
 
 # Butterworth Filter
 bw_order  = 1     # Filter order
@@ -51,6 +55,8 @@ dataset_path = rel_path + "ersst.v5.pdo.dat"
 df_pdo = pd.read_csv(dataset_path, delim_whitespace=True, names=columns)
 df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).drop('Year', axis=1).reset_index(drop=True)
 
+# IOD Data
+df_iod = pd.read_pickle('iod/iod.pkl')
 
 for sector in list(sectors.keys()):
 
@@ -100,7 +106,7 @@ for sector in list(sectors.keys()):
 
 dv = {}
 for month in month_list:
-    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "SSR": df_ssr[month], "STR": df_str[month]})
+    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "SSR": df_ssr[month], "STR": df_str[month], "IOD": df_iod[month]})
 
 # Standardizing dv values
 scaler = StandardScaler()
@@ -114,40 +120,41 @@ def perform_mlr(iv, dv):
         x = dv[month]
         y = iv[month]
 
-        poly = PolynomialFeatures(degree=1)
+        poly = PolynomialFeatures(degree=poly_deg)
         x_poly = poly.fit_transform(x)
 
         model = LinearRegression()
         model.fit(x_poly, y)
 
-        # coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
-        # del coeffs[month]['1']
-        #     # 'ENSO': model.coef_[1],
-        #     # 'PDO': model.coef_[2],
-        #     # 'SSR': model.coef_[3],
-        #     # 'STR': model.coef_[4],
+        coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
+        del coeffs[month]['1']
+            # 'ENSO': model.coef_[1],
+            # 'PDO': model.coef_[2],
+            # 'SSR': model.coef_[3],
+            # 'STR': model.coef_[4],
         
-        # coeffs[month]['const'] = model.intercept_
+        coeffs[month]['const'] = model.intercept_
 
-        y_pred = model.predict(x_poly)
-        coeffs[month] = y_pred
+        # y_pred = model.predict(x_poly)
+        # coeffs[month] = y_pred
     return coeffs
 
 coeffs = {}
 for region, iv in sectors.items():
     coeffs[region] = perform_mlr(iv, dv)
 
-# for region, coeffs in coeffs.items():
-#     print(f"\n\nEquations for {region} region:")
-#     for month, coeff in coeffs.items():
-#         print(f'\n{month}: ' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff])[:-8])
+for region, coeffs in coeffs.items():
+    print(f"\n\nEquations for {region} region:")
+    for month, coeff in coeffs.items():
+        print(f'\n{month}:\n' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff])[:-8])
+        # print(f'{month} : {coeff}')
 
-# Predictions
-for region, pred_dict in coeffs.items():
-    print(f"Predictions for {region} region:\n")
-    for month, pred in pred_dict.items():
-        actual = sectors[region][month]
-        comparison_df = pd.DataFrame({'Actual': actual, 'Predicted': pred})
-        print(f"Month: {month}")
-        print(comparison_df)
-        print("\n")
+# # Predictions
+# for region, pred_dict in coeffs.items():
+#     print(f"Predictions for {region} region:\n")
+#     for month, pred in pred_dict.items():
+#         actual = sectors[region][month]
+#         comparison_df = pd.DataFrame({'Actual': actual, 'Predicted': pred})
+#         print(f"Month: {month}")
+#         print(comparison_df)
+#         print("\n")
