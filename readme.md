@@ -1,5 +1,5 @@
 # What is this?
-Repo to store my python codes for my work at NCPOR in Polar Remote Sensing, Earth Sciences under Dr. Alvarinho J. Luis for Practice School - I, BITS Pilani (FIC - Dr. Sunari R.)
+Repo to store my python codes for my work at National Centre for Polar and Ocean Research (NCPOR, erstwhile NCAOR) in Polar Remote Sensing, Earth Sciences under Dr. Alvarinho J. Luis for Practice School - I, BITS Pilani (FIC - Dr. Sunari R.)
 
 # MidSem report
 I compiled the report using LaTeX. Chapters 3 and 4 are my the majority of my contributions.
@@ -11,6 +11,7 @@ I compiled the report using LaTeX. Chapters 3 and 4 are my the majority of my co
 - https://noaadata.apps.nsidc.org
 - https://www.weather.gov/fwd/indices
 - https://psl.noaa.gov/pdo/
+- https://psl.noaa.gov/gcos_wgsp/Timeseries/DMI/
 - https://doi.org/10.24381/cds.f17050d7
 
 # Glossary
@@ -23,8 +24,11 @@ I compiled the report using LaTeX. Chapters 3 and 4 are my the majority of my co
   <dt><b>SSR</b></dt><dd>Surface Short-wave Solar Radiation</dd>
   <dt><b>SSR</b></dt><dd>Surface Long-wave Thermal Radiation</dd>
   <dt><b>IOD</b></dt><dd>Indian Ocean Dipole</dd>
+  <dt><b>DMI</b></dt><dd>Dipole Mode Index</dd>
   <dt><b>SAM</b></dt><dd>Southern Annular Mode</dd>
   <dt><b>SLHF</b></dt><dd>Surface Latent Heat Flux</dd>
+  <dt><b>NOAA</b></dt><dd>National Oceanic and Atmospheric Administration</dd>
+  <dt><b>NSIDC</b></dt><dd>National Snow and Ice Data Center</dd>
 </dl>
 
 # CDO command for future ref
