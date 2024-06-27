@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-dataset = ["enso", "pdo", "ssr", "str"][2]
+dataset = ["enso", "pdo", "ssr", "str", "iod"][-1]
 
-with open(f'multivar_analysis/get_csv/data/{dataset}.json') as f:
+with open(f'multivar_analysis/get_corr_json/data/{dataset}.json') as f:
     data = json.load(f)
 
 regions = list(data.keys())
@@ -40,7 +40,7 @@ for i in range(corr_df.shape[0]):
         else:
             bbox_props = dict(boxstyle="round,pad=0.2", facecolor="white", edgecolor="none")
         
-        plt.text(j + 0.5, i + 0.5, text, ha='center', va='center', color='black', bbox=bbox_props, fontsize=14)
+        plt.text(j + 0.5, i + 0.5, text, ha='center', va='center', color='black', bbox=bbox_props, fontsize=12)
 
 plt.title(f'Correlation Coefficients and p-values between Antarctic Sea Ice Extent and {dataset.upper()}', fontsize=14)
 plt.xlabel('Month', fontsize=14)

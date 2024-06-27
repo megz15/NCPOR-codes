@@ -1,7 +1,7 @@
 import pandas as pd
 
 regions = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
-datasets = ["enso", "pdo", "ssr", "str"]
+datasets = ["enso", "pdo", "ssr", "str", "iod"]
 
 rel_path = "multivar_analysis/"
 
@@ -24,7 +24,7 @@ region_dfs = {region: pd.DataFrame({'Month': month_list}) for region in regions}
 
 for region in regions:
     for dataset in datasets:
-        df = pd.read_json(rel_path + "get_csv/data/" + dataset + ".json")
+        df = pd.read_json(rel_path + "get_corr_json/data/" + dataset + ".json")
         region_dfs[region][dataset] = [x[0] for x in df[region].values]
 
 print(region_dfs)
