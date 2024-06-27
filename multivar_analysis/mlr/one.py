@@ -128,12 +128,7 @@ def perform_mlr(iv, dv):
 
         coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
         del coeffs[month]['1']
-            # 'ENSO': model.coef_[1],
-            # 'PDO': model.coef_[2],
-            # 'SSR': model.coef_[3],
-            # 'STR': model.coef_[4],
-        
-        coeffs[month]['const'] = model.intercept_
+        coeffs[month] = {'const':model.intercept_, **coeffs[month]}
 
         # y_pred = model.predict(x_poly)
         # coeffs[month] = y_pred
@@ -146,7 +141,7 @@ for region, iv in sectors.items():
 for region, coeffs in coeffs.items():
     print(f"\n\nEquations for {region} region:")
     for month, coeff in coeffs.items():
-        print(f'\n{month}:\n' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff])[:-8])
+        print(f'\n{month}:\n' + ' + '.join([f'{coeff[x]}*({x})' if x!='const' else str(coeff[x]) for x in coeff]))
         # print(f'{month} : {coeff}')
 
 # # Predictions
