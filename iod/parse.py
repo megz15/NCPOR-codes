@@ -33,4 +33,6 @@ df_iod = df_iod[df_iod['Year']>=1979].drop('Year', axis=1).reset_index(drop=True
 for month in month_list:
     df_iod[month] = filtfilt(B, A, df_iod[month])
 
-print(df_iod)
+df_iod.to_pickle('iod/iod.pkl')
+
+# print(df_iod)
