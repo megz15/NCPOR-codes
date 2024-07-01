@@ -1,24 +1,14 @@
-import scipy.signal as signal
-import pandas as pd
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-import xarray as xr
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+import pandas as pd
 
 # Parameters
 
-poly_deg = 2
+poly_deg = 1
 
-# Butterworth Filter
-bw_order  = 1     # Filter order
-bw_cfreq  = 0.4   # Cutoff frequency
-B, A = signal.butter(bw_order, bw_cfreq, btype='low', analog=False)
-
-sectors = {"Bell-Amundsen": None, "Indian": None, "Pacific": None, "Ross": None, "Weddell": None}
 rel_path = "../../data/"
 
-regions = {
+sectors = {
     'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
     'Bell-Amundsen': {'lon': (-130, -60), 'lat': (-50, -72)},
     'Weddell': {'lon': (-60, 20), 'lat': (-50, -72)},
@@ -45,68 +35,19 @@ columns = ['Year'] + month_list
 
 # Independent Variables (IVs)
 
-# ENSO Data
-dataset_path = rel_path + "darwin.anom_.txt"
-df_soi = pd.read_csv(dataset_path, delim_whitespace=True, names=columns)
-df_soi = df_soi[df_soi['Year']>=1979].head(-1).drop('Year', axis=1).reset_index(drop=True)
+df_soi = pd.read_pickle('pickles/soi.pkl')
+df_pdo = pd.read_pickle('pickles/pdo.pkl')
+df_iod = pd.read_pickle('pickles/iod.pkl')
+df_ssr = pd.read_pickle('pickles/ssr.pkl')
+df_str = pd.read_pickle('pickles/str.pkl')
 
-# PDO Data
-dataset_path = rel_path + "ersst.v5.pdo.dat"
-df_pdo = pd.read_csv(dataset_path, delim_whitespace=True, names=columns)
-df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).drop('Year', axis=1).reset_index(drop=True)
+# Dependent Variable (DV)
 
-# IOD Data
-df_iod = pd.read_pickle('iod/iod.pkl')
-
-for sector in list(sectors.keys()):
-
-    # SSR Data
-    dataset_path = rel_path + 'netcdf/rad/radiation_1979-2023_monthly_seaice.nc'
-    with xr.open_dataset(dataset_path) as ds:
-        resampled_ds = ds['ssr'].sel(
-            longitude = slice(
-                min(regions[sector]['lon']), max(regions[sector]['lon'])
-            ), latitude = slice(
-                max(regions[sector]['lat']), min(regions[sector]['lat'])
-            )).mean(dim=['latitude', 'longitude'])
-        
-        df_ssr = resampled_ds.to_dataframe().reset_index()
-        
-        df_ssr['Year'] = df_ssr['time'].dt.year
-        df_ssr['Month'] = df_ssr['time'].dt.strftime('%B')
-        
-        df_ssr = df_ssr.pivot(index='Year', columns='Month', values='ssr')
-        df_ssr.reset_index(inplace=True)
-
-    # STR Data
-    dataset_path = rel_path + 'netcdf/rad/radiation_1979-2023_monthly_seaice.nc'
-    with xr.open_dataset(dataset_path) as ds:
-        resampled_ds = ds['str'].sel(
-            longitude = slice(
-                min(regions[sector]['lon']), max(regions[sector]['lon'])
-            ), latitude = slice(
-                max(regions[sector]['lat']), min(regions[sector]['lat'])
-            )).mean(dim=['latitude', 'longitude'])
-        
-        df_str = resampled_ds.to_dataframe().reset_index()
-        
-        df_str['Year'] = df_str['time'].dt.year
-        df_str['Month'] = df_str['time'].dt.strftime('%B')
-        
-        df_str = df_str.pivot(index='Year', columns='Month', values='str')
-        df_str.reset_index(inplace=True)
-
-    # Dependent Variable (DV)
-
-    # Sea Ice Index Data
-    dataset_path = rel_path + "S_Sea_Ice_Index_Regional_Monthly_Data_G02135_v3.0.xlsx"
-
-    sectors[sector] = pd.read_excel(dataset_path, sheet_name = sector + "-Extent-km^2")[month_list].head(-1).tail(-3).reset_index(drop=True).apply(pd.to_numeric)
-    sectors[sector] = sectors[sector].interpolate(method='linear')
+df_sie = pd.read_pickle('pickles/sie.pkl')
 
 dv = {}
 for month in month_list:
-    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "SSR": df_ssr[month], "STR": df_str[month], "IOD": df_iod[month]})
+    dv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "IOD": df_iod[month]})
 
 # Standardizing dv values
 scaler = StandardScaler()
@@ -114,9 +55,12 @@ scaler = StandardScaler()
 for month, df in dv.items():
     dv[month] = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
-def perform_mlr(iv, dv):
+def perform_mlr(iv, dv, region_dv):
     coeffs = {}
-    for month in iv.columns:
+    for month in month_list:
+        for i in list(region_dv.keys()):
+            dv[month][i] = region_dv[i][month]
+
         x = dv[month]
         y = iv[month]
 
@@ -129,27 +73,21 @@ def perform_mlr(iv, dv):
         coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
         del coeffs[month]['1']
         coeffs[month] = {'const':model.intercept_, **coeffs[month]}
-
-        # y_pred = model.predict(x_poly)
-        # coeffs[month] = y_pred
     return coeffs
 
 coeffs = {}
-for region, iv in sectors.items():
-    coeffs[region] = perform_mlr(iv, dv)
+for sector in list(sectors.keys()):
+    df_sie_r = df_sie[df_sie['Sector'] == sector].reset_index(drop=True)
+    df_ssr_r = df_ssr[df_ssr['Sector'] == sector].reset_index(drop=True)
+    df_str_r = df_str[df_str['Sector'] == sector].reset_index(drop=True)
 
-for region, coeffs in coeffs.items():
-    print(f"\n\nEquations for {region} region:")
+    df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
+
+    coeffs[sector] = perform_mlr(df_sie_r, dv, {
+        'SSR': df_ssr_r, 'STR': df_str_r
+    })
+
+for sector, coeffs in coeffs.items():
+    print(f"\n\nEquations for {sector} sector:")
     for month, coeff in coeffs.items():
         print(f'\n{month}:\n' + ' + '.join([f'{coeff[x]}*({x})' if x!='const' else str(coeff[x]) for x in coeff]))
-        # print(f'{month} : {coeff}')
-
-# # Predictions
-# for region, pred_dict in coeffs.items():
-#     print(f"Predictions for {region} region:\n")
-#     for month, pred in pred_dict.items():
-#         actual = sectors[region][month]
-#         comparison_df = pd.DataFrame({'Actual': actual, 'Predicted': pred})
-#         print(f"Month: {month}")
-#         print(comparison_df)
-#         print("\n")
