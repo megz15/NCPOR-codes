@@ -84,7 +84,7 @@ for sector, coeffs in coeffs.items():
     for month, coeff in coeffs.items():
         print(f'\n{month}: ' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff]))
 
-for sector in list(sectors.keys()):
-    print(f"\nActual vs Predicted values for {sector} sector:")
-    for month, actual_vs_predicted in predictions[sector].items():
-        print(f'\n{month}:\n', actual_vs_predicted)
+# for sector in list(sectors.keys()):
+#     print(f"\nActual vs Predicted values for {sector} sector:")
+#     for month, actual_vs_predicted in predictions[sector].items():
+#         print(f'\n{month}:\n', actual_vs_predicted)
