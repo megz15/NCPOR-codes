@@ -4,7 +4,7 @@ import pandas as pd
 
 # Parameters
 poly_deg = 1
-calc_intercept = False
+calc_intercept = True
 rel_path = "../../data/"
 
 sectors = {
@@ -44,6 +44,8 @@ for month, df in iv.items():
 
 def perform_mlr(dv, iv, region_iv):
     coeffs = {}
+    actual_vs_predicted = {}
+
     for month in month_list:
         for i in list(region_iv.keys()):
             iv[month][i] = region_iv[i][month]
@@ -58,9 +60,14 @@ def perform_mlr(dv, iv, region_iv):
         model.fit(x_poly, y)
 
         coeffs[month] = dict(zip(poly.get_feature_names_out().tolist(), model.coef_.tolist()))
-    return coeffs
+
+        y_pred = model.predict(x_poly)
+        actual_vs_predicted[month] = pd.DataFrame({'Actual': y, 'Predicted': y_pred})
+    return coeffs, actual_vs_predicted
 
 coeffs = {}
+predictions = {}
+
 for sector in list(sectors.keys()):
     df_sie_r = df_sie[df_sie['Sector'] == sector]
     df_ssr_r = df_ssr[df_ssr['Sector'] == sector].reset_index(drop=True)
@@ -68,11 +75,16 @@ for sector in list(sectors.keys()):
 
     df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
 
-    coeffs[sector] = perform_mlr(df_sie_r, iv, {
+    coeffs[sector], predictions[sector] = perform_mlr(df_sie_r, iv, {
         'SSR': df_ssr_r, 'STR': df_str_r
     })
 
 for sector, coeffs in coeffs.items():
     print(f"\n\nEquations for {sector} sector:")
     for month, coeff in coeffs.items():
-        print(f'\n{month}:\n' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff]))
+        print(f'\n{month}: ' + ' + '.join([f'{coeff[x]}*({x})' for x in coeff]))
+
+for sector in list(sectors.keys()):
+    print(f"\nActual vs Predicted values for {sector} sector:")
+    for month, actual_vs_predicted in predictions[sector].items():
+        print(f'\n{month}:\n', actual_vs_predicted)
