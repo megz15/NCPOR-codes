@@ -7,6 +7,9 @@ import pandas as pd
 def highlight_if_significant(flag, threshold = 0.5):
     return '\033[92m' if flag > threshold else '\033[0m'
 
+def df_transform(df, method = "log"):
+    return df.transform(method)
+
 years = list(range(1979, 2024))
 
 sectors = {
@@ -31,6 +34,7 @@ df_str = pd.read_pickle('pickles/str.pkl')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
+df_sie[month_list] = df_transform(df_sie[month_list])
 
 iv = {}
 for month in month_list:
