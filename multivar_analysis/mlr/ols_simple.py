@@ -4,6 +4,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
+def highlight_if_significant(flag, threshold = 0.5):
+    return '\033[92m' if flag > threshold else '\033[0m'
+
 years = list(range(1979, 2024))
 
 sectors = {
@@ -31,7 +34,7 @@ df_sie = pd.read_pickle('pickles/sie.pkl')
 
 iv = {}
 for month in month_list:
-    iv[month] = pd.DataFrame({"ENSO": df_soi[month], "PDO": df_pdo[month], "IOD": df_iod[month]})
+    iv[month] = pd.DataFrame({'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month]})
 
 # Standardizing iv values
 scaler = StandardScaler()
@@ -95,20 +98,20 @@ for sector in list(sectors.keys()):
 
 # Print equations
 for sector, sector_models in models.items():
-    print(f"\nEquations for {sector} sector:")
+    print(f'\n\033[105mEquations for {sector} sector:\033[0m')
     for month, model in sector_models.items():
-        print(f'{month}: {model.intercept_} + {' + '.join(
-            [f'{x}*({y})' for x,y in zip(model.coef_, model.feature_names_in_)]
+        print(f'\033[93m{month}\033[0m: {model.intercept_} + {' + '.join(
+            [f'{x}*\033[96m({y})\033[0m' for x,y in zip(model.coef_, model.feature_names_in_)]
         )}')
 
 # Performance metrics
 for sector, sector_performances in performances.items():
-    print(f"\nPerformance for {sector} sector:")
+    print(f'\n\033[105mPerformance for {sector} sector:\033[0m')
     for month, metrics in sector_performances.items():
-        print(f"Training {month.ljust(9)} R2: {metrics['train']['R2']:.3f}\tMSE: {metrics['train']['MSE']:.3f}\tMAE: {metrics['train']['MAE']:.3f}")
-        for actual, predicted in zip(metrics['train']['Actual'], metrics['train']['Predicted']):
-            print(f"Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}")
+        print(f'{highlight_if_significant(metrics['train']['R2'])}Training {month.ljust(9)} R2: {metrics['train']['R2']:.3f}\tMSE: {metrics['train']['MSE']:.3f}\tMAE: {metrics['train']['MAE']:.3f}\033[0m')
+        # for actual, predicted in zip(metrics['train']['Actual'], metrics['train']['Predicted']):
+        #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
 
-        print(f" Testing {month.ljust(9)} R2: {metrics['test']['R2']:.3f}\tMSE: {metrics['test']['MSE']:.3f}\tMAE: {metrics['test']['MAE']:.3f}")
-        for actual, predicted in zip(metrics['test']['Actual'], metrics['test']['Predicted']):
-            print(f"Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}")
+        print(f'{highlight_if_significant(metrics['test']['R2'])} Testing {month.ljust(9)} R2: {metrics['test']['R2']:.3f}\tMSE: {metrics['test']['MSE']:.3f}\tMAE: {metrics['test']['MAE']:.3f}\033[0m')
+        # for actual, predicted in zip(metrics['test']['Actual'], metrics['test']['Predicted']):
+        #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
