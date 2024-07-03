@@ -1,6 +1,7 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
@@ -9,6 +10,52 @@ def highlight_if_significant(flag, threshold = 0.5):
 
 def df_transform(df, method = "log"):
     return df.transform(method)
+
+def add_polynomial_features(iv, degree=2):
+    poly = PolynomialFeatures(degree, include_bias=False)
+    iv_poly = {}
+    for month in month_list:
+        iv_poly[month] = pd.DataFrame(poly.fit_transform(iv[month]), columns=poly.get_feature_names_out(iv[month].columns))
+    return iv_poly
+
+def perform_mlr(dv, iv, region_iv):
+    models = {}
+    performance = {}
+
+    for month in month_list:
+        for i in list(region_iv.keys()):
+            iv[month][i] = region_iv[i][month]
+
+        x = iv[month]
+        y = dv[month]
+
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+        model = Ridge(alpha = alpha) if alpha != 0 else LinearRegression()
+        model.fit(x_train, y_train)
+
+        y_pred_train = model.predict(x_train)
+        y_pred_test = model.predict(x_test)
+
+        performance[month] = {
+            'train': {
+                'R2': r2_score(y_train, y_pred_train),
+                'MSE': mean_squared_error(y_train, y_pred_train),
+                'MAE': mean_absolute_error(y_train, y_pred_train),
+                'Actual': y_train,
+                'Predicted': y_pred_train
+            },
+            'test': {
+                'R2': r2_score(y_test, y_pred_test),
+                'MSE': mean_squared_error(y_test, y_pred_test),
+                'MAE': mean_absolute_error(y_test, y_pred_test),
+                'Actual': y_test,
+                'Predicted': y_pred_test
+            }
+        }
+
+        models[month] = model
+    return models, performance
 
 # Ridge/Tikhonov L2 Regularization
 # 0 = OLS, no ridge regularization
@@ -50,47 +97,10 @@ scaler = StandardScaler()
 for month, df in iv.items():
     iv[month] = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
-def perform_mlr(dv, iv, region_iv):
-    models = {}
-    performance = {}
-
-    for month in month_list:
-        for i in list(region_iv.keys()):
-            iv[month][i] = region_iv[i][month]
-
-        x = iv[month]
-        y = dv[month]
-
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-
-        model = Ridge(alpha = alpha) if alpha != 0 else LinearRegression()
-        model.fit(x_train, y_train)
-
-        y_pred_train = model.predict(x_train)
-        y_pred_test = model.predict(x_test)
-
-        performance[month] = {
-            'train': {
-                'R2': r2_score(y_train, y_pred_train),
-                'MSE': mean_squared_error(y_train, y_pred_train),
-                'MAE': mean_absolute_error(y_train, y_pred_train),
-                'Actual': y_train,
-                'Predicted': y_pred_train
-            },
-            'test': {
-                'R2': r2_score(y_test, y_pred_test),
-                'MSE': mean_squared_error(y_test, y_pred_test),
-                'MAE': mean_absolute_error(y_test, y_pred_test),
-                'Actual': y_test,
-                'Predicted': y_pred_test
-            }
-        }
-
-        models[month] = model
-    return models, performance
-
 models = {}
 performances = {}
+
+iv_poly = add_polynomial_features(iv, degree=1)
 
 for sector in list(sectors.keys()):
     df_sie_r = df_sie[df_sie['Sector'] == sector]
@@ -99,7 +109,7 @@ for sector in list(sectors.keys()):
 
     df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
 
-    models[sector], performances[sector] = perform_mlr(df_sie_r, iv, {
+    models[sector], performances[sector] = perform_mlr(df_sie_r, iv_poly, {
         'SSR': df_ssr_r,
         'STR': df_str_r,
     })
