@@ -1,4 +1,5 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
@@ -40,6 +41,7 @@ for month, df in iv.items():
 
 def perform_mlr(dv, iv, region_iv):
     models = {}
+    performance = {}
 
     for month in month_list:
         for i in list(region_iv.keys()):
@@ -48,13 +50,36 @@ def perform_mlr(dv, iv, region_iv):
         x = iv[month]
         y = dv[month]
 
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
         model = LinearRegression(fit_intercept = True)
-        model.fit(x, y)
+        model.fit(x_train, y_train)
+
+        y_pred_train = model.predict(x_train)
+        y_pred_test = model.predict(x_test)
+
+        performance[month] = {
+            'train': {
+                'R2': r2_score(y_train, y_pred_train),
+                'MSE': mean_squared_error(y_train, y_pred_train),
+                'MAE': mean_absolute_error(y_train, y_pred_train),
+                'Actual': y_train,
+                'Predicted': y_pred_train
+            },
+            'test': {
+                'R2': r2_score(y_test, y_pred_test),
+                'MSE': mean_squared_error(y_test, y_pred_test),
+                'MAE': mean_absolute_error(y_test, y_pred_test),
+                'Actual': y_test,
+                'Predicted': y_pred_test
+            }
+        }
 
         models[month] = model
-    return models
+    return models, performance
 
 models = {}
+performances = {}
 
 for sector in list(sectors.keys()):
     df_sie_r = df_sie[df_sie['Sector'] == sector]
@@ -63,11 +88,12 @@ for sector in list(sectors.keys()):
 
     df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
 
-    models[sector] = perform_mlr(df_sie_r, iv, {
+    models[sector], performances[sector] = perform_mlr(df_sie_r, iv, {
         'SSR': df_ssr_r,
         'STR': df_str_r,
     })
 
+# Print equations
 for sector, sector_models in models.items():
     print(f"\nEquations for {sector} sector:")
     for month, model in sector_models.items():
@@ -75,21 +101,14 @@ for sector, sector_models in models.items():
             [f'{x}*({y})' for x,y in zip(model.coef_, model.feature_names_in_)]
         )}')
 
-for sector, sector_models in models.items():
-    df_sie_r = df_sie[df_sie['Sector'] == sector].drop(columns=['Sector', 'Year']).reset_index(drop=True)
+# Performance metrics
+for sector, sector_performances in performances.items():
+    print(f"\nPerformance for {sector} sector:")
+    for month, metrics in sector_performances.items():
+        print(f"Training {month.ljust(9)} R2: {metrics['train']['R2']:.3f}\tMSE: {metrics['train']['MSE']:.3f}\tMAE: {metrics['train']['MAE']:.3f}")
+        for actual, predicted in zip(metrics['train']['Actual'], metrics['train']['Predicted']):
+            print(f"Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}")
 
-    print(f'\nSector - {sector}')
-    for month in month_list:
-        x = iv[month].copy()
-        x['SSR'] = df_ssr[df_ssr['Sector'] == sector][month].values
-        x['STR'] = df_str[df_str['Sector'] == sector][month].values
-        y = df_sie_r[month]
-
-        model = sector_models[month]
-        y_pred = model.predict(x)
-
-        print(f'{month.ljust(9)}\tR2:{str(round(r2_score(y, y_pred), 3)).ljust(5)}\tMSE:{round(mean_squared_error(y, y_pred), 3)}\tMAE:{round(mean_absolute_error(y, y_pred), 3)}')
-
-        # print('Year\tActual\t\tPrediction\tDifference')
-        # for year, x,y in zip(years, y, y_pred):
-        #     print(f'{year}\t{round(x,3)}\t{round(y,3)}\t{round(y-x,3)}')
+        print(f" Testing {month.ljust(9)} R2: {metrics['test']['R2']:.3f}\tMSE: {metrics['test']['MSE']:.3f}\tMAE: {metrics['test']['MAE']:.3f}")
+        for actual, predicted in zip(metrics['test']['Actual'], metrics['test']['Predicted']):
+            print(f"Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}")
