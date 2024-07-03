@@ -1,6 +1,6 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
@@ -9,6 +9,10 @@ def highlight_if_significant(flag, threshold = 0.5):
 
 def df_transform(df, method = "log"):
     return df.transform(method)
+
+# Ridge/Tikhonov L2 Regularization
+# 0 = OLS, no ridge regularization
+alpha = 0
 
 years = list(range(1979, 2024))
 
@@ -34,7 +38,7 @@ df_str = pd.read_pickle('pickles/str.pkl')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
-df_sie[month_list] = df_transform(df_sie[month_list])
+# df_sie[month_list] = df_transform(df_sie[month_list])
 
 iv = {}
 for month in month_list:
@@ -59,7 +63,7 @@ def perform_mlr(dv, iv, region_iv):
 
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-        model = LinearRegression(fit_intercept = True)
+        model = Ridge(alpha = alpha) if alpha != 0 else LinearRegression()
         model.fit(x_train, y_train)
 
         y_pred_train = model.predict(x_train)
