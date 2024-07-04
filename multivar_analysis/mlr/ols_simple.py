@@ -1,8 +1,7 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 def highlight_if_significant(flag, threshold = 0.5):
@@ -22,6 +21,9 @@ def perform_mlr(dv, iv, region_iv):
     models = {}
     performance = {}
 
+    # Standardizing iv values
+    scaler = StandardScaler()
+
     for month in month_list:
         for i in list(region_iv.keys()):
             iv[month][i] = region_iv[i][month]
@@ -29,7 +31,10 @@ def perform_mlr(dv, iv, region_iv):
         x = iv[month]
         y = dv[month]
 
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+        x_standardized = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
+        # y_standardized = pd.DataFrame(scaler.fit_transform(y.values.reshape(-1, 1)))[0]
+
+        x_train, x_test, y_train, y_test = train_test_split(x_standardized, y, test_size=0.2, random_state=42)
 
         model = Ridge(alpha = alpha) if alpha != 0 else LinearRegression()
         model.fit(x_train, y_train)
@@ -91,12 +96,6 @@ iv = {}
 for month in month_list:
     iv[month] = pd.DataFrame({'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month]})
 
-# Standardizing iv values
-scaler = StandardScaler()
-
-for month, df in iv.items():
-    iv[month] = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-
 models = {}
 performances = {}
 
@@ -118,9 +117,18 @@ for sector in list(sectors.keys()):
 for sector, sector_models in models.items():
     print(f'\n\033[105mEquations for {sector} sector:\033[0m')
     for month, model in sector_models.items():
-        print(f'\033[93m{month}\033[0m: {model.intercept_} + {' + '.join(
-            [f'{x}*\033[96m({y})\033[0m' for x,y in zip(model.coef_, model.feature_names_in_)]
+        coefficients = model.coef_
+        feature_names = model.feature_names_in_
+
+        total_abs_coefs = sum(abs(coeff) for coeff in coefficients)
+        contributions = {name: round(abs(coeff) / total_abs_coefs * 100, 3) for name, coeff in zip(feature_names, coefficients)}
+
+        print(f'\033[93m{month}\033[0m: {round(model.intercept_, 3)} + {' + '.join(
+            [f'{round(x, 3)}*\033[96m({y})\033[0m' for x,y in zip(coefficients, feature_names)]
         )}')
+
+        print('\033[95m' + '\t'.join(contributions.keys()) + '\033[0m')
+        print('%\t'.join(map(str, contributions.values())) + '%')
 
 # Performance metrics
 for sector, sector_performances in performances.items():
