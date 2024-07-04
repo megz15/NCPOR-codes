@@ -1,4 +1,5 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.model_selection import train_test_split
@@ -25,16 +26,16 @@ def perform_mlr(dv, iv, region_iv):
     scaler = StandardScaler()
 
     for month in month_list:
-        for i in list(region_iv.keys()):
+        for i in region_iv.keys():
             iv[month][i] = region_iv[i][month]
+
+        iv[month] = pd.DataFrame(scaler.fit_transform(iv[month]), columns=iv[month].columns)
+        # dv[month] = pd.DataFrame(scaler.fit_transform(dv[month].values.reshape(-1, 1)))[0]
 
         x = iv[month]
         y = dv[month]
 
-        x_standardized = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
-        # y_standardized = pd.DataFrame(scaler.fit_transform(y.values.reshape(-1, 1)))[0]
-
-        x_train, x_test, y_train, y_test = train_test_split(x_standardized, y, test_size=0.2, random_state=42)
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
         model = Ridge(alpha = alpha) if alpha != 0 else LinearRegression()
         model.fit(x_train, y_train)
@@ -62,11 +63,17 @@ def perform_mlr(dv, iv, region_iv):
         models[month] = model
     return models, performance
 
+def calculate_vif(df):
+    vif = pd.DataFrame()
+    vif['Variable'] = df.columns
+    vif['VIF'] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
+    return vif
+
 # Ridge/Tikhonov L2 Regularization
 # 0 = OLS, no ridge regularization
 alpha = 0
 
-years = list(range(1979, 2024))
+years = range(1979, 2024)
 
 sectors = {
     'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
@@ -90,7 +97,7 @@ df_str = pd.read_pickle('pickles/str.pkl')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
-# df_sie[month_list] = df_transform(df_sie[month_list])
+df_sie[month_list] = df_transform(df_sie[month_list])
 
 iv = {}
 for month in month_list:
@@ -99,9 +106,9 @@ for month in month_list:
 models = {}
 performances = {}
 
-iv_poly = add_polynomial_features(iv, degree=1)
+iv_poly = iv #add_polynomial_features(iv, degree=1)
 
-for sector in list(sectors.keys()):
+for sector in sectors.keys():
     df_sie_r = df_sie[df_sie['Sector'] == sector]
     df_ssr_r = df_ssr[df_ssr['Sector'] == sector].reset_index(drop=True)
     df_str_r = df_str[df_str['Sector'] == sector].reset_index(drop=True)
@@ -141,3 +148,10 @@ for sector, sector_performances in performances.items():
         print(f'{highlight_if_significant(metrics['test']['R2'])} Testing {month.ljust(9)} R2: {metrics['test']['R2']:.3f}\tMSE: {metrics['test']['MSE']:.3f}\tMAE: {metrics['test']['MAE']:.3f}\033[0m')
         # for actual, predicted in zip(metrics['test']['Actual'], metrics['test']['Predicted']):
         #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
+
+# Calculate VIF
+for sector in sectors.keys():
+    for month in month_list:
+        print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
+        vif = calculate_vif(iv_poly[month])
+        print(vif)
