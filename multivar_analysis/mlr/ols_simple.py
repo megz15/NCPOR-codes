@@ -92,8 +92,12 @@ month_list = [
 df_soi = pd.read_pickle('pickles/soi.pkl')
 df_pdo = pd.read_pickle('pickles/pdo.pkl')
 df_iod = pd.read_pickle('pickles/iod.pkl')
+
 df_ssr = pd.read_pickle('pickles/ssr.pkl')
 df_str = pd.read_pickle('pickles/str.pkl')
+
+df_slhf = pd.read_excel('other_data/monthly_slhf_value_filtered.xlsx')
+df_sshf = pd.read_excel('other_data/monthly_sshf_value_filtered.xlsx')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
@@ -101,7 +105,10 @@ df_sie[month_list] = df_transform(df_sie[month_list])
 
 iv = {}
 for month in month_list:
-    iv[month] = pd.DataFrame({'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month]})
+    iv[month] = pd.DataFrame({
+        'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month],
+        'SLHF': df_slhf[month], 'SSHF': df_sshf[month]
+    })
 
 models = {}
 performances = {}
@@ -150,8 +157,8 @@ for sector, sector_performances in performances.items():
         #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
 
 # Calculate VIF
-for sector in sectors.keys():
-    for month in month_list:
-        print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
-        vif = calculate_vif(iv_poly[month])
-        print(vif)
+# for sector in sectors.keys():
+#     for month in month_list:
+#         print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
+#         vif = calculate_vif(iv_poly[month])
+#         print(vif)
