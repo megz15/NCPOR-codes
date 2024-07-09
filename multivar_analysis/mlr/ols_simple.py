@@ -26,8 +26,8 @@ def perform_mlr(dv, iv, region_iv):
     scaler = StandardScaler()
 
     for month in month_list:
-        for i in region_iv.keys():
-            iv[month][i] = region_iv[i][month]
+        for region in region_iv:
+            iv[month][region] = region_iv[region][month]
 
         iv[month] = pd.DataFrame(scaler.fit_transform(iv[month]), columns=iv[month].columns)
         # dv[month] = pd.DataFrame(scaler.fit_transform(dv[month].values.reshape(-1, 1)))[0]
@@ -96,8 +96,8 @@ df_iod = pd.read_pickle('pickles/iod.pkl')
 df_ssr = pd.read_pickle('pickles/ssr.pkl')
 df_str = pd.read_pickle('pickles/str.pkl')
 
-df_slhf = pd.read_excel('other_data/monthly_slhf_value_filtered.xlsx')
-df_sshf = pd.read_excel('other_data/monthly_sshf_value_filtered.xlsx')
+df_slhf = pd.ExcelFile('other_data/monthly_slhf_value_filtered.xlsx')
+df_sshf = pd.ExcelFile('other_data/monthly_sshf_value_filtered.xlsx')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
@@ -107,7 +107,6 @@ iv = {}
 for month in month_list:
     iv[month] = pd.DataFrame({
         'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month],
-        'SLHF': df_slhf[month], 'SSHF': df_sshf[month]
     })
 
 models = {}
@@ -115,16 +114,22 @@ performances = {}
 
 iv_poly = iv #add_polynomial_features(iv, degree=1)
 
-for sector in sectors.keys():
+for sector in sectors:
     df_sie_r = df_sie[df_sie['Sector'] == sector]
+    
     df_ssr_r = df_ssr[df_ssr['Sector'] == sector].reset_index(drop=True)
     df_str_r = df_str[df_str['Sector'] == sector].reset_index(drop=True)
+    
+    df_slhf_r = pd.read_excel(df_slhf, f'{sector} Region')
+    df_sshf_r = pd.read_excel(df_sshf, f'{sector} Region')
 
     df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
 
     models[sector], performances[sector] = perform_mlr(df_sie_r, iv_poly, {
         'SSR': df_ssr_r,
         'STR': df_str_r,
+        'SLHF': df_slhf_r,
+        'SSHF': df_sshf_r,
     })
 
 # Print equations
@@ -157,7 +162,7 @@ for sector, sector_performances in performances.items():
         #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
 
 # Calculate VIF
-# for sector in sectors.keys():
+# for sector in sectors:
 #     for month in month_list:
 #         print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
 #         vif = calculate_vif(iv_poly[month])
