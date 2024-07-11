@@ -99,6 +99,11 @@ df_str = pd.read_pickle('pickles/str.pkl')
 df_slhf = pd.ExcelFile('other_data/monthly_slhf_value_filtered.xlsx')
 df_sshf = pd.ExcelFile('other_data/monthly_sshf_value_filtered.xlsx')
 
+df_u10 = pd.ExcelFile('other_data/monthly_u10_value_filtered.xlsx')
+df_v10 = pd.ExcelFile('other_data/monthly_v10_value_filtered.xlsx')
+
+df_t2m = pd.ExcelFile('other_data/monthly_t2m_value_filtered.xlsx')
+
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
 df_sie[month_list] = df_transform(df_sie[month_list])
@@ -123,6 +128,11 @@ for sector in sectors:
     df_slhf_r = pd.read_excel(df_slhf, f'{sector} Region')
     df_sshf_r = pd.read_excel(df_sshf, f'{sector} Region')
 
+    df_u10_r = pd.read_excel(df_u10, f'{sector} Region')
+    df_v10_r = pd.read_excel(df_v10, f'{sector} Region')
+
+    df_t2m_r = pd.read_excel(df_t2m, f'{sector} Region')
+
     df_sie_r = df_sie_r.drop(columns = ['Sector', 'Year']).reset_index(drop=True)
 
     models[sector], performances[sector] = perform_mlr(df_sie_r, iv_poly, {
@@ -130,6 +140,9 @@ for sector in sectors:
         'STR': df_str_r,
         'SLHF': df_slhf_r,
         'SSHF': df_sshf_r,
+        'U10': df_u10_r,
+        'V10': df_v10_r,
+        'T2M': df_t2m_r,
     })
 
 # Print equations
