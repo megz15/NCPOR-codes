@@ -1,4 +1,5 @@
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 import pandas as pd
@@ -109,11 +110,12 @@ for sector in sectors:
 
     contribution = np.abs(coefficients) / np.sum(np.abs(coefficients)) * 100
 
-    print(f'\033[91m{sector.ljust(15)} R2: {perf["R2"]:.3f}\tMSE: {perf["MSE"]:.3f}\tMAE: {perf["MAE"]:.3f}\033[0m')
+    print(f'\n\033[91m{sector.ljust(15)} R2: {perf["R2"]:.3f}\tMSE: {perf["MSE"]:.3f}\tMAE: {perf["MAE"]:.3f}\033[0m')
 
     variable_names = ["STR" if x == "Value" else x[6:] for x in df_merged.drop(columns=['Date', 'Value_SIE']).columns]
 
-    print(f'Intercept\t{intercept}')
-    for var, coef, contrib in zip(variable_names, coefficients, contribution):
-        print(f'{highlight_if_significant(contrib, 10)}{var.ljust(9)}\tCoefficient: {coef:.4f}\tContribution: {contrib:.3f}%')
-    print()
+    vif_data = [variance_inflation_factor(df_merged.drop(columns=['Date', 'Value_SIE']).values, i) for i in range(len(variable_names))]
+
+    print(f'{intercept:.3f}\t\033[100mCoeff\tContrib\tVIF\033[0m')
+    for var, coef, contrib, vif in zip(variable_names, coefficients, contribution, vif_data):
+        print(f'{highlight_if_significant(contrib, 10)}{var}\t{coef:.3f}\t{contrib:.3f}%\t{vif:.3f}')
