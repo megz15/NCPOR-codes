@@ -2,11 +2,12 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 import pandas as pd
+import numpy as np
 
 start = '1979-01-01'
 end = '2023-12-01'
 
-def highlight_if_significant(flag, threshold = 0.5):
+def highlight_if_significant(flag, threshold = 20):
     return '\033[92m' if flag > threshold else '\033[0m'
 
 def standardize(df):
@@ -62,8 +63,8 @@ df_pdo_flat = standardize(flatten(df_pdo))
 df_iod_flat = standardize(flatten(df_iod))
 
 for sector in sectors:
-
     df_sie_flat = flatten(df_sie[ df_sie["Sector"] == sector ], sector)
+    df_sie_flat["Value"] = df_sie_flat["Value"].transform("log")
 
     df_ssr_flat = standardize(flatten(df_ssr[ df_ssr["Sector"] == sector ], sector))
     df_str_flat = standardize(flatten(df_str[ df_str["Sector"] == sector ], sector))
@@ -76,19 +77,19 @@ for sector in sectors:
 
     df_t2m_flat = standardize(flatten(pd.read_excel(df_t2m, f'{sector} Region')))
 
-    df_merged = df_sie_flat.merge(df_ssr_flat, on='Date', suffixes=('_sie', '_ssr'))
-    df_merged = df_merged.merge(df_str_flat, on='Date', suffixes=('', '_str'))
-    df_merged = df_merged.merge(df_slhf_flat, on='Date', suffixes=('', '_slhf'))
-    df_merged = df_merged.merge(df_sshf_flat, on='Date', suffixes=('', '_sshf'))
-    df_merged = df_merged.merge(df_u10_flat, on='Date', suffixes=('', '_u10'))
-    df_merged = df_merged.merge(df_v10_flat, on='Date', suffixes=('', '_v10'))
-    df_merged = df_merged.merge(df_t2m_flat, on='Date', suffixes=('', '_t2m'))
-    df_merged = df_merged.merge(df_soi_flat, on='Date', suffixes=('', '_soi'))
-    df_merged = df_merged.merge(df_pdo_flat, on='Date', suffixes=('', '_pdo'))
-    df_merged = df_merged.merge(df_iod_flat, on='Date', suffixes=('', '_iod'))
+    df_merged = df_sie_flat.merge(df_ssr_flat, on='Date', suffixes=('_SIE', '_SSR'))
+    df_merged = df_merged.merge(df_str_flat, on='Date', suffixes=('', '_STR'))
+    df_merged = df_merged.merge(df_slhf_flat, on='Date', suffixes=('', '_SLHF'))
+    df_merged = df_merged.merge(df_sshf_flat, on='Date', suffixes=('', '_SSHF'))
+    df_merged = df_merged.merge(df_u10_flat, on='Date', suffixes=('', '_U10'))
+    df_merged = df_merged.merge(df_v10_flat, on='Date', suffixes=('', '_V10'))
+    df_merged = df_merged.merge(df_t2m_flat, on='Date', suffixes=('', '_T2M'))
+    df_merged = df_merged.merge(df_soi_flat, on='Date', suffixes=('', '_SOI'))
+    df_merged = df_merged.merge(df_pdo_flat, on='Date', suffixes=('', '_PDO'))
+    df_merged = df_merged.merge(df_iod_flat, on='Date', suffixes=('', '_IOD'))
 
-    x = df_merged.drop(columns=['Date', 'Value_sie']).values
-    y = df_merged['Value_sie'].values
+    x = df_merged.drop(columns=['Date', 'Value_SIE']).values
+    y = df_merged['Value_SIE'].values
 
     model = LinearRegression()
     model.fit(x, y)
@@ -103,4 +104,16 @@ for sector in sectors:
         'Predicted': y_pred
     }
 
-    print(f'{highlight_if_significant(perf['R2'])}{sector.ljust(15)} R2: {perf['R2']:.3f}\tMSE: {perf['MSE']:.3f}\tMAE: {perf['MAE']:.3f}\033[0m')
+    coefficients = model.coef_
+    intercept = model.intercept_
+
+    contribution = np.abs(coefficients) / np.sum(np.abs(coefficients)) * 100
+
+    print(f'\033[91m{sector.ljust(15)} R2: {perf["R2"]:.3f}\tMSE: {perf["MSE"]:.3f}\tMAE: {perf["MAE"]:.3f}\033[0m')
+
+    variable_names = ["STR" if x == "Value" else x[6:] for x in df_merged.drop(columns=['Date', 'Value_SIE']).columns]
+
+    print(f'Intercept\t{intercept}')
+    for var, coef, contrib in zip(variable_names, coefficients, contribution):
+        print(f'{highlight_if_significant(contrib, 10)}{var.ljust(9)}\tCoefficient: {coef:.4f}\tContribution: {contrib:.3f}%')
+    print()
