@@ -9,7 +9,7 @@ months = [
 ]
 
 years = list(range(1979, 2024))
-rel_path = "shapefiles/data/"
+rel_path = "data/"
 
 for month in months:
     
@@ -18,7 +18,7 @@ for month in months:
     
     for year in years:
 
-        file_name = f"extent_S_{year}01_polygon_v3.0.zip"
+        file_name = f"extent_S_{year}{month[:2]}_polygon_v3.0.zip"
         file_path = os.path.join(save_folder, file_name)
 
         url = f"https://noaadata.apps.nsidc.org/NOAA/G02135/south/monthly/shapefiles/shp_extent/{month}/{file_name}"
@@ -28,8 +28,8 @@ for month in months:
         if r.status_code == 200:
             with open(file_path, 'wb') as file:
                 file.write(r.content)
-            print(f"{file_path} OK")
+            print(f"[✅] {file_path} OK")
         else:
-            print(f"{file_path} FAIL: {r.status_code}")
+            print(f"[❌] {file_path} FAIL: {r.status_code}")
 
     print(f"\n{month} DONE\n")
