@@ -24,11 +24,23 @@ def plot_sector_data(sector, df_dict, start, end):
     for name, df in df_dict.items():
         filt_df = df[(df['Date'] >= start) & (df['Date'] <= end)]
         plt.plot(filt_df['Date'], filt_df['Value'], label=name)
-    plt.title(f'Sector: {sector}')
-    plt.xlabel('Date')
-    plt.ylabel('Standardized Value')
+    plt.title(f'Sector: {sector}', fontsize=18, weight='bold')
+    
+    plt.xlabel('Date', fontsize=15, labelpad=10, weight='bold')
+    plt.ylabel('Standardized Value', fontsize=15, labelpad=10, weight='bold')
+    
+    year_starts = pd.date_range(start=start, end=end, freq='YS')[::2]
+    plt.xticks(year_starts, year_starts.strftime('%Y'), rotation=90, fontsize=14, weight='bold')
+    plt.yticks(fontsize=14, weight='bold')
+    
     plt.legend(loc='upper right')
     plt.grid(True)
+    plt.margins(x=0)
+
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+
+    plt.tight_layout()
     plt.show()
 
 sectors = {
@@ -46,7 +58,7 @@ months = {
 }
 
 start = '1979-01-01'
-end = '2024-01-01'
+end = '2023-12-01'
 
 # Independent Variables (IVs)
 df_soi = pd.read_pickle('pickles/soi.pkl')
