@@ -4,7 +4,7 @@ from scipy.signal import butter, filtfilt
 # Butterworth Filter
 bw_order  = 1     # Filter order
 bw_cfreq  = 0.4   # Cut-off freq
-B,A = butter(bw_order, bw_cfreq)
+B,A = butter(bw_order, bw_cfreq, btype="high")
 
 month_list = [
     'January',
@@ -33,6 +33,6 @@ df_iod = df_iod[df_iod['Year']>=1979].reset_index(drop=True)
 for month in month_list:
     df_iod[month] = filtfilt(B, A, df_iod[month])
 
-df_iod.to_pickle('pickles/iod.pkl')
+df_iod.to_pickle('pickles/high_iod.pkl')
 
 # print(df_iod)

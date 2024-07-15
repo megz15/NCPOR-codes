@@ -4,7 +4,7 @@ from scipy.signal import butter, filtfilt
 # Butterworth Filter
 bw_order  = 1     # Filter order
 bw_cfreq  = 0.4   # Cut-off freq
-B,A = butter(bw_order, bw_cfreq)
+B,A = butter(bw_order, bw_cfreq, btype="high")
 
 month_list = [
     'January',
@@ -33,6 +33,6 @@ df_pdo = df_pdo[df_pdo['Year']>=1979].head(-1).reset_index(drop=True)
 for month in month_list:
     df_pdo[month] = filtfilt(B, A, df_pdo[month])
 
-df_pdo.to_pickle('pickles/pdo.pkl')
+df_pdo.to_pickle('pickles/high_pdo.pkl')
 
 # print(df_pdo)

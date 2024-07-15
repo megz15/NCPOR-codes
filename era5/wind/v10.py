@@ -5,7 +5,7 @@ import xarray as xr
 # Butterworth Filter
 bw_order  = 1     # Filter order
 bw_cfreq  = 0.4   # Cut-off freq
-B,A = butter(bw_order, bw_cfreq)
+B,A = butter(bw_order, bw_cfreq, btype="high")
 
 month_list = [
     'January',
@@ -68,5 +68,5 @@ for sector in list(sectors.keys()):
 
 df_v10 = pd.concat(df_v10_list, ignore_index=True)
 
-df_v10.to_pickle('pickles/v10.pkl')
+df_v10.to_pickle('pickles/high_v10.pkl')
 # print(df_v10)
