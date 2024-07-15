@@ -2,6 +2,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def df_transform(df, method = "log"):
     return df.transform(method)
@@ -93,18 +95,40 @@ for sector in sectors:
 
     reanalysis_models[sector] = perform_mlr(df_sie_r, reanalysis_iv)
 
-for sector, remote_models, reanalysis_models in zip(sectors, remote_models.values(), reanalysis_models.values()):
-    print(f'\n\033[105mEquations for {sector} sector:\033[0m')
-    
-    for month, remote_model, reanalysis_model in zip(month_list, remote_models.values(), reanalysis_models.values()):
+contributions_dict = {kind: {var: {} for var in sectors} for kind in ("Remote", "Reanalysis")}
 
-        print("\033[93mMonth - " + month)
+for sector in sectors:
+    # print(f'\n\033[105mEquations for {sector} sector:\033[0m')
+    
+    for month, remote_model, reanalysis_model in zip(month_list, remote_models[sector].values(), reanalysis_models[sector].values()):
+        # print("\033[93mMonth - " + month)
+
         for kind, model in zip(("Remote", "Reanalysis"), (remote_model, reanalysis_model)):
             coefficients = model.coef_
             feature_names = model.feature_names_in_
-
             total_abs_coefs = np.sum(np.abs(coefficients))
             contributions = {name: round(np.abs(coeff) / total_abs_coefs * 100, 3) for name, coeff in zip(feature_names, coefficients)}
 
-            print(f'\033[95m{kind.ljust(10)}\t' + '\t'.join(contributions.keys()) + '\033[0m')
-            print("Contributions\t" + '%\t'.join(map(str, contributions.values())) + '%')
+            # print(f'\033[95m{kind.ljust(10)}\t' + '\t'.join(contributions.keys()) + '\033[0m')
+            # print("Contributions\t" + '%\t'.join(map(str, contributions.values())) + '%')
+
+            contributions_dict[kind][sector][month] = contributions
+
+for sector in sectors:
+    for variable in ['Remote', 'Reanalysis']:
+
+        vars = ['ENSO', 'PDO', 'IOD', 'SAM'] if variable == "Remote" else ['SSR', 'STR', 'SLHF', 'SSHF', 'U10', 'V10', 'T2M']
+
+        fig, axs = plt.subplots(3, 4)
+        for i, month in enumerate(month_list):
+            data_to_plot = [contributions_dict[variable][sector][month][var] for var in vars]
+            ax = axs[i // 4, i % 4]
+            ax.pie(data_to_plot, labels=vars, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 12}, colors=sns.color_palette("muted"))
+            ax.set_title(f"{variable} - {sector} - {month}")
+
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+
+        fig.tight_layout()
+        fig.tight_layout()
+        plt.show()
