@@ -93,6 +93,8 @@ df_soi = pd.read_pickle('pickles/soi.pkl')
 df_pdo = pd.read_pickle('pickles/pdo.pkl')
 df_iod = pd.read_pickle('pickles/iod.pkl')
 
+df_sam = pd.read_excel('other_data/sam.xlsx')
+
 df_ssr = pd.read_pickle('pickles/ssr.pkl')
 df_str = pd.read_pickle('pickles/str.pkl')
 
@@ -111,7 +113,7 @@ df_sie[month_list] = df_transform(df_sie[month_list])
 iv = {}
 for month in month_list:
     iv[month] = pd.DataFrame({
-        'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month],
+        'ENSO': df_soi[month], 'PDO': df_pdo[month], 'IOD': df_iod[month], 'SAM': df_sam[month]
     })
 
 models = {}

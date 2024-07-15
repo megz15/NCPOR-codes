@@ -53,6 +53,8 @@ df_soi = pd.read_pickle('pickles/soi.pkl')
 df_pdo = pd.read_pickle('pickles/pdo.pkl')
 df_iod = pd.read_pickle('pickles/iod.pkl')
 
+df_sam = pd.read_excel('other_data/sam.xlsx')
+
 df_ssr = pd.read_pickle('pickles/ssr.pkl')
 df_str = pd.read_pickle('pickles/str.pkl')
 
@@ -75,6 +77,7 @@ df_sie = pd.read_pickle('pickles/sie.pkl')
 df_soi_flat = standardize(flatten(df_soi))
 df_pdo_flat = standardize(flatten(df_pdo))
 df_iod_flat = standardize(flatten(df_iod))
+df_sam_flat = standardize(flatten(df_sam))
 
 for sector in sectors:
 
@@ -103,6 +106,7 @@ for sector in sectors:
         "SOI": df_soi_flat,
         "PDO": df_pdo_flat,
         "IOD": df_iod_flat,
+        "SAM": df_sam_flat,
 
         "SSR": df_ssr_flat,
         "STR": df_str_flat,

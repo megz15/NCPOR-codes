@@ -48,6 +48,8 @@ df_soi = pd.read_pickle('pickles/soi.pkl')
 df_pdo = pd.read_pickle('pickles/pdo.pkl')
 df_iod = pd.read_pickle('pickles/iod.pkl')
 
+df_sam = pd.read_excel('other_data/sam.xlsx')
+
 df_ssr = pd.read_pickle('pickles/ssr.pkl')
 df_str = pd.read_pickle('pickles/str.pkl')
 
@@ -62,6 +64,7 @@ df_t2m = pd.ExcelFile('other_data/monthly_t2m_value_filtered.xlsx')
 df_soi_flat = standardize(flatten(df_soi))
 df_pdo_flat = standardize(flatten(df_pdo))
 df_iod_flat = standardize(flatten(df_iod))
+df_sam_flat = standardize(flatten(df_sam))
 
 for sector in sectors:
     df_sie_flat = flatten(df_sie[ df_sie["Sector"] == sector ], sector)
@@ -88,6 +91,7 @@ for sector in sectors:
     df_merged = df_merged.merge(df_soi_flat, on='Date', suffixes=('', '_SOI'))
     df_merged = df_merged.merge(df_pdo_flat, on='Date', suffixes=('', '_PDO'))
     df_merged = df_merged.merge(df_iod_flat, on='Date', suffixes=('', '_IOD'))
+    df_merged = df_merged.merge(df_sam_flat, on='Date', suffixes=('', '_SAM'))
 
     x = df_merged.drop(columns=['Date', 'Value_SIE']).values
     y = df_merged['Value_SIE'].values
