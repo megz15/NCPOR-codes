@@ -123,12 +123,20 @@ for sector in sectors:
         for i, month in enumerate(month_list):
             data_to_plot = [contributions_dict[variable][sector][month][var] for var in vars]
             ax = axs[i // 4, i % 4]
-            ax.pie(data_to_plot, labels=vars, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 12}, colors=sns.color_palette("muted"))
-            ax.set_title(f"{variable} - {sector} - {month}")
+            ax.pie(data_to_plot, startangle=90, radius=1.3,
+                # textprops={'fontsize': 12}, labels=vars,
+                colors=sns.color_palette("muted")
+            )
+
+            labels=[f'{s:0.1f}%' for s in data_to_plot]
+            ax.legend(loc='center', labels=labels, fontsize=8 if variable == "Reanalysis" else 11)
+
+            ax.set_title(month)
+        fig.legend(vars)
 
         figManager = plt.get_current_fig_manager()
         figManager.window.showMaximized()
 
         fig.tight_layout()
-        fig.tight_layout()
+        plt.suptitle(f"{variable} - {sector}", fontsize=14)
         plt.show()

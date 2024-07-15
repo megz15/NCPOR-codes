@@ -157,14 +157,32 @@ for sector in sectors:
 
     fig, axs = plt.subplots(1, 2)
     
-    axs[0].pie(contribution_reanalysis, labels=variable_names_reanalysis, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 12}, explode = [0.005] * len(variable_names_reanalysis), colors=sns.color_palette("muted"))
-    axs[0].set_title('Reanalysis Variables')
+    patches, labels = axs[0].pie(contribution_reanalysis, radius=1.2, startangle=90,
+        #explode = [0.005] * len(variable_names_reanalysis),
+    colors=sns.color_palette("muted"))
     
-    axs[1].pie(contribution_remote, labels=variable_names_remote, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 12}, explode = [0.005] * len(variable_names_remote), colors=sns.color_palette("muted"))
-    axs[1].set_title('Remote Variables')
+    axs[0].set_title('Reanalysis Variables', fontsize=14)
+
+    labels=[f'{l}: {s:0.1f}%' for l,s in zip(variable_names_reanalysis, contribution_reanalysis)]
+    axs[0].legend(loc='center', labels=labels, fontsize=16)
+
+    # for label, pct_text in zip(labels, pct_texts):
+    #     pct_text.set_rotation(label.get_rotation())
+    
+    patches, labels = axs[1].pie(contribution_remote, radius=1.2, startangle=90,
+        # explode = [0.005] * len(variable_names_remote)
+    colors=sns.color_palette("muted"))
+    
+    axs[1].set_title('Remote Variables', fontsize=14)
+
+    labels=[f'{l}: {s:0.1f}%' for l,s in zip(variable_names_remote, contribution_remote)]
+    axs[1].legend(loc='center', labels=labels, fontsize=16)
+
+    # for label, pct_text in zip(labels, pct_texts):
+    #     pct_text.set_rotation(label.get_rotation())
     
     plt.rcParams.update({'font.size': 14, 'font.family': 'Arial'})
-    plt.suptitle(f'{sector} - Contribution of Variables')
+    plt.suptitle(f'{sector} - Contribution of Variables', fontsize=18)
 
     figManager = plt.get_current_fig_manager()
     figManager.window.showMaximized()
