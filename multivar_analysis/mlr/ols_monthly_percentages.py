@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 def df_transform(df, method = "log"):
     return df.transform(method)
@@ -22,7 +23,7 @@ def perform_mlr(dv, iv):
 
     return models
 
-sectors = ['Ross', 'Bell-Amundsen', 'Weddell', 'Indian', 'Pacific']
+sectors = ['Weddell', 'Indian', 'Pacific', 'Ross', 'Bell-Amundsen']
 
 month_list = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -119,7 +120,9 @@ for sector in sectors:
 
         vars = ['ENSO', 'PDO', 'IOD', 'SAM'] if variable == "Remote" else ['SSR', 'STR', 'SLHF', 'SSHF', 'U10', 'V10', 'T2M']
 
-        fig, axs = plt.subplots(3, 4)
+        plt.figure(figsize=(13.66, 7.38), dpi=200)
+
+        fig, axs = plt.subplots(3, 4, figsize=(13.66, 7.38), dpi=200)
         for i, month in enumerate(month_list):
             data_to_plot = [contributions_dict[variable][sector][month][var] for var in vars]
             ax = axs[i // 4, i % 4]
@@ -129,14 +132,22 @@ for sector in sectors:
             )
 
             labels=[f'{s:0.1f}%' for s in data_to_plot]
-            ax.legend(wedges, loc='center left', labels=labels, bbox_to_anchor=(1, 0.5), fontsize=10 if variable == "Reanalysis" else 12, handlelength=0.7, handletextpad=0.1)
+            ax.legend(wedges, labels, loc='center left', bbox_to_anchor=(1, 0.5), handlelength=0.7, handletextpad=0.2, frameon=False, prop={'weight': 'bold', 'size': 12 if variable == "Reanalysis" else 14})
+            ax.set_title(month[:3], fontsize=14, weight="bold")
+        fig.legend(vars, loc='lower center', handlelength=0.7, frameon=False, ncol=len(vars), prop={'weight':'bold', 'size': 12})
 
-            ax.set_title(month, fontsize=14, weight="bold")
-        fig.legend(vars, handlelength=0.7, framealpha=0.3)
+        # figManager = plt.get_current_fig_manager()
+        # figManager.window.showMaximized()
 
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
+        plt.suptitle(f"{variable} - {sector if sector!="Bell-Amundsen" else "Bellingshausen-Amundsen"} {"Ocean" if sector in ["Indian", "Pacific"] else "Sea"}", fontsize=16, weight="bold")
 
         fig.tight_layout()
-        plt.suptitle(f"{variable} - {sector}", fontsize=14, weight="bold")
-        plt.show()
+        output_dir = f"results/percentages/{variable}"
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
+        plt.savefig(os.path.join(output_dir, f'{sector}_{variable}.png'))
+        plt.close()
+        
+        # plt.show()
