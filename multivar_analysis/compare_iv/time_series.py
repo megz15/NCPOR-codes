@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 def flatten(df, sector = None):
     if sector: df = df.drop(columns=["Sector"])
@@ -21,19 +23,29 @@ def standardize(df):
     return df
 
 def plot_sector_data(sector, df_dict, start, end):
+    plt.figure(figsize=(13.66, 7.38), dpi=200)
+
     for name, df in df_dict.items():
         filt_df = df[(df['Date'] >= start) & (df['Date'] <= end)]
         plt.plot(filt_df['Date'], filt_df['Value'], label=name)
-    plt.title(f'Sector: {sector}', fontsize=18, weight='bold')
+    plt.title(f'Sector: {sector if sector!="Bell-Amundsen" else "Bellingshausen-Amundsen"} {"Ocean" if sector in ["Indian", "Pacific"] else "Sea"}', fontsize=18, weight='bold')
+
+    min_val = filt_df['Value'].min()
+    max_val = filt_df['Value'].max()
+
+    min_range = np.floor(min_val * 2) / 2
+    max_range = np.ceil(max_val * 2) / 2
+
+    range_values = np.arange(min_range, max_range + 0.5, 0.5)
     
     plt.xlabel('Date', fontsize=15, labelpad=10, weight='bold')
     plt.ylabel('Standardized Value', fontsize=15, labelpad=10, weight='bold')
     
     year_starts = pd.date_range(start=start, end=end, freq='YS')[::2]
     plt.xticks(year_starts, year_starts.strftime('%Y'), rotation=90, fontsize=14, weight='bold')
-    plt.yticks(fontsize=14, weight='bold')
+    plt.yticks(range_values, fontsize=14, weight='bold')
     
-    plt.legend(loc='upper right')
+    plt.legend(loc='upper right', prop={'size': 14, 'weight': 'bold'}, ncol=2)
     plt.grid(True)
     plt.margins(x=0)
 
@@ -41,14 +53,23 @@ def plot_sector_data(sector, df_dict, start, end):
     figManager.window.showMaximized()
 
     plt.tight_layout()
-    plt.show()
+
+    output_dir = f"results/timeseries/{name}"
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    plt.savefig(os.path.join(output_dir, f'{sector}.png'))
+    plt.close()
+
+    # plt.show()
 
 sectors = {
-    'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
-    'Bell-Amundsen': {'lon': (-130, -60), 'lat': (-50, -72)},
     'Weddell': {'lon': (-60, 20), 'lat': (-50, -72)},
     'Indian': {'lon': (20, 90), 'lat': (-50, -72)},
-    'Pacific': {'lon': (90, 160), 'lat': (-50, -72)}
+    'Pacific': {'lon': (90, 160), 'lat': (-50, -72)},
+    'Ross': {'lon': (160, -130), 'lat': (-50, -72)},
+    'Bell-Amundsen': {'lon': (-130, -60), 'lat': (-50, -72)},
 }
 
 months = {
@@ -113,8 +134,6 @@ for sector in sectors:
     df_t2m_flat = standardize(flatten(pd.read_excel(df_t2m, f'{sector} Region')))
 
     df_dict = {
-        "SIE": df_sie_flat,
-
         "SOI": df_soi_flat,
         "PDO": df_pdo_flat,
         "IOD": df_iod_flat,
@@ -132,4 +151,8 @@ for sector in sectors:
         "T2M": df_t2m_flat
     }
 
-    plot_sector_data(sector, df_dict, start, end)
+    for key, val in df_dict.items():
+        plot_sector_data(sector, {
+            "SIE": df_sie_flat,
+            key: val,
+        }, start, end)
