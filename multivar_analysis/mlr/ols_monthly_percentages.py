@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+btype = "low"
+
 def df_transform(df, method = "log"):
     return df.transform(method)
 
@@ -32,6 +34,7 @@ month_list = [
 
 # Independent Variables (IVs)
 df_soi = pd.read_pickle('pickles/soi.pkl')
+
 df_pdo = pd.read_pickle('pickles/pdo.pkl')
 df_iod = pd.read_pickle('pickles/iod.pkl')
 
@@ -50,7 +53,7 @@ df_t2m = pd.ExcelFile('other_data/monthly_t2m_value_filtered.xlsx')
 
 # Dependent Variable (DV)
 df_sie = pd.read_pickle('pickles/sie.pkl')
-df_sie[month_list] = df_transform(df_sie[month_list])
+# df_sie[month_list] = df_transform(df_sie[month_list])
 
 remote_iv = {}
 reanalysis_iv = {}
@@ -139,10 +142,10 @@ for sector in sectors:
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
 
-        plt.suptitle(f"{variable} - {sector if sector!="Bell-Amundsen" else "Bellingshausen-Amundsen"} {"Ocean" if sector in ["Indian", "Pacific"] else "Sea"}", fontsize=16, weight="bold")
+        plt.suptitle(f"{variable} ({btype}-pass): {sector if sector!="Bell-Amundsen" else "Bellingshausen-Amundsen"} {"Ocean" if sector in ["Indian", "Pacific"] else "Sea"}", fontsize=16, weight="bold")
 
         fig.tight_layout()
-        output_dir = f"results/percentages/{variable}"
+        output_dir = f"results/percentages/{btype}/{variable}"
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
