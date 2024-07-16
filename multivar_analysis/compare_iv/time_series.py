@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+btype = "high"
+
 def flatten(df, sector = None):
     if sector: df = df.drop(columns=["Sector"])
     df_flat = pd.melt(df, id_vars=['Year'], var_name='Month', value_name='Value')
@@ -49,12 +51,12 @@ def plot_sector_data(sector, df_dict, start, end):
     plt.grid(True)
     plt.margins(x=0)
 
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    # figManager = plt.get_current_fig_manager()
+    # figManager.window.showMaximized()
 
     plt.tight_layout()
 
-    output_dir = f"results/timeseries/{name}"
+    output_dir = f"results/timeseries/{btype}/{name}"
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -82,30 +84,30 @@ start = '1979-01-01'
 end = '2023-12-01'
 
 # Independent Variables (IVs)
-df_soi = pd.read_pickle('pickles/soi.pkl')
-df_pdo = pd.read_pickle('pickles/pdo.pkl')
-df_iod = pd.read_pickle('pickles/iod.pkl')
+df_soi = pd.read_pickle('pickles/high_soi.pkl')
+df_pdo = pd.read_pickle('pickles/high_pdo.pkl')
+df_iod = pd.read_pickle('pickles/high_iod.pkl')
 
-df_sam = pd.read_excel('other_data/sam.xlsx')
+df_sam = pd.read_excel('other_data/highpass/sam_high.xlsx')
 
-df_ssr = pd.read_pickle('pickles/ssr.pkl')
-df_str = pd.read_pickle('pickles/str.pkl')
+df_ssr = pd.read_pickle('pickles/high_ssr.pkl')
+df_str = pd.read_pickle('pickles/high_str.pkl')
 
 # df_u10 = pd.read_pickle('pickles/u10.pkl')
 # df_v10 = pd.read_pickle('pickles/v10.pkl')
 
 # df_t2m = pd.read_pickle('pickles/t2m.pkl')
 
-df_slhf = pd.ExcelFile('other_data/monthly_slhf_value_filtered.xlsx')
-df_sshf = pd.ExcelFile('other_data/monthly_sshf_value_filtered.xlsx')
+df_slhf = pd.ExcelFile('other_data/highpass/monthly_slhf_high_filtered.xlsx')
+df_sshf = pd.ExcelFile('other_data/highpass/monthly_sshf_high_filtered.xlsx')
 
-df_u10 = pd.ExcelFile('other_data/monthly_u10_value_filtered.xlsx')
-df_v10 = pd.ExcelFile('other_data/monthly_v10_value_filtered.xlsx')
+df_u10 = pd.ExcelFile('other_data/highpass/monthly_u10_high_filtered.xlsx')
+df_v10 = pd.ExcelFile('other_data/highpass/monthly_v10_high_filtered.xlsx')
 
-df_t2m = pd.ExcelFile('other_data/monthly_t2m_value_filtered.xlsx')
+df_t2m = pd.ExcelFile('other_data/highpass/monthly_t2m_high_filtered.xlsx')
 
 # Dependent Variable (DV)
-df_sie = pd.read_pickle('pickles/sie.pkl')
+df_sie = pd.read_pickle('pickles/high_sie.pkl')
 
 df_soi_flat = standardize(flatten(df_soi))
 df_pdo_flat = standardize(flatten(df_pdo))
