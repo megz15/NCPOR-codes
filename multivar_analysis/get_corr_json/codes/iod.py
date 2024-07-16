@@ -2,8 +2,10 @@ import json
 import pandas as pd
 from scipy.stats import pearsonr
 
-df_iod = pd.read_pickle('iod/iod.pkl')
-df_sie = pd.read_pickle('sie/sie.pkl')
+btype = "low"
+
+df_iod = pd.read_pickle(f'pickles/{btype}_iod.pkl')
+df_sie = pd.read_pickle(f'pickles/{btype}_sie.pkl')
 
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
 
@@ -30,5 +32,5 @@ for sector in sectors:
     for month in month_list:
         json_export[sector][month] = [round(x,3) for x in pearsonr(df_sie_sector[month], df_iod[month])]
         
-with open("multivar_analysis/get_corr_json/data/iod.json", 'w') as f:
+with open(f"multivar_analysis/get_corr_json/data/{btype}/{btype}_iod.json", 'w') as f:
     json.dump(json_export, f)

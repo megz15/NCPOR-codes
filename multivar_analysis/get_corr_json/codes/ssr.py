@@ -5,13 +5,15 @@ import scipy.signal as signal
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 
+btype = "high"
+
 def is_leap_year(year):
     return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
 # Butterworth Filter params
 bw_order  = 1     # Filter order
 bw_cfreq  = 0.4   # Cutoff frequency
-B, A = signal.butter(bw_order, bw_cfreq, btype='lowpass', analog=False)
+B, A = signal.butter(bw_order, bw_cfreq, btype=btype)
 
 # Longitude and Latitude ranges
 regions = {
@@ -96,14 +98,14 @@ for region in list(regions.keys()):
     for month in list(range(len(month_days))):
 
         # Applying butterworth filter
-        bworth_filt_seaice = pd.Series(signal.filtfilt(B,A, df_extent_resampled_monthly[month + 1])) - df_extent_resampled_monthly[month + 1]
-        bworth_filt_ssr = pd.Series(signal.filtfilt(B,A, df_nc_resampled_monthly[month + 1])) - df_nc_resampled_monthly[month + 1]
+        bworth_filt_seaice = pd.Series(signal.filtfilt(B,A, df_extent_resampled_monthly[month + 1]))
+        bworth_filt_ssr = pd.Series(signal.filtfilt(B,A, df_nc_resampled_monthly[month + 1]))
         
         # bworth_filt_seaice = df_extent_resampled_monthly[month + 1]
         # bworth_filt_ssr  = df_nc_resampled_monthly[month + 1]
 
-        bworth_filt_seaice = bworth_filt_seaice.transform("rank")
-        bworth_filt_ssr = bworth_filt_ssr.transform("rank")
+        # bworth_filt_seaice = bworth_filt_seaice.transform("rank")
+        # bworth_filt_ssr = bworth_filt_ssr.transform("rank")
 
         # 5th-degree polynomial fit for sea ice extent
         coefficients_seaice = np.polyfit(df_extent_resampled_monthly.index, bworth_filt_seaice, 5)
@@ -155,8 +157,8 @@ for region in list(regions.keys()):
 
     handles, labels = plt.gca().get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper right')
-    plt.show()
+    # plt.show()
 
-# import json
-# with open("multivar_analysis/get_csv/data/ssr.json", 'w') as f:
-#     json.dump(json_export, f)
+import json
+with open(f"multivar_analysis/get_corr_json/data/{btype}/{btype}_ssr.json", 'w') as f:
+    json.dump(json_export, f)

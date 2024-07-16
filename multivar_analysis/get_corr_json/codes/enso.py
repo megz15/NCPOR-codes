@@ -17,6 +17,7 @@ def plot_graph(ax, year, extent_values, bfl_seaice, soi_values, bfl_soi, month):
 sectors = ["Bell-Amundsen", "Indian", "Pacific", "Ross", "Weddell"]
 rel_path = "../../data/"
 pearson_threshold = 0.5
+btype = "high"
 
 month_list = [
     'January',
@@ -77,15 +78,15 @@ for sector in sectors:
         # Butterworth Filter
         N  = 1    # Filter order
         Wn = 0.4  # Cutoff frequency
-        B, A = signal.butter(N, Wn, output='ba')
+        B, A = signal.butter(N, Wn, btype=btype)
         
         extent = pd.Series(signal.filtfilt(B,A, extent))
         df_soi[month] = pd.Series(signal.filtfilt(B,A, df_soi[month]))
         
 
         # Rank Transformation
-        extent = extent.transform("rank")
-        df_soi[month] = df_soi[month].transform("rank")
+        # extent = extent.transform("rank")
+        # df_soi[month] = df_soi[month].transform("rank")
 
         extent_diff = np.diff(extent, 1)
 
@@ -162,8 +163,8 @@ for sector in sectors:
     handles, labels = plt.gca().get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper right')
 
-    plt.show()
+    # plt.show()
 
-# import json
-# with open("multivar_analysis/get_csv/data/enso.json", 'w') as f:
-#     json.dump(json_export, f)
+import json
+with open(f"multivar_analysis/get_corr_json/data/{btype}/{btype}_enso.json", 'w') as f:
+    json.dump(json_export, f)
