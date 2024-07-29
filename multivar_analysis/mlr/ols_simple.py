@@ -160,10 +160,10 @@ for sector, sector_models in models.items():
 #         #     print(f'Actual: {actual:.3f}\tPredicted: {predicted:.3f}\tDifference: {predicted-actual:.3f}')
 
 # # Calculate VIF
-# for sector in sectors:
-#     for month in month_list:
-#         vif = calculate_vif(iv_poly[month])
-#         vif = vif[ vif["VIF"] > 10 ]
-#         if not vif.empty:
-#             print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
-#             print(vif)
+for sector in sectors:
+    for month in month_list:
+        vif = calculate_vif(iv_poly[month])
+        vif = vif[ vif["VIF"] > 10 ]
+        if not vif.empty:
+            print(f'\n\033[105mVIF for {sector} sector in {month}:\033[0m')
+            print(vif)

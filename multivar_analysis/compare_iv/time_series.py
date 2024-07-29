@@ -25,7 +25,7 @@ def standardize(df):
     return df
 
 def plot_sector_data(sector, df_dict, start, end):
-    plt.figure(figsize=(13.66, 7.38), dpi=200)
+    plt.figure(figsize=(13.66, 7.38), dpi=100)
 
     for name, df in df_dict.items():
         filt_df = df[(df['Date'] >= start) & (df['Date'] <= end)]
@@ -43,28 +43,28 @@ def plot_sector_data(sector, df_dict, start, end):
     plt.xlabel('Date', fontsize=15, labelpad=10, weight='bold')
     plt.ylabel('Standardized Value', fontsize=15, labelpad=10, weight='bold')
     
-    year_starts = pd.date_range(start=start, end=end, freq='YS')[::2]
-    plt.xticks(year_starts, year_starts.strftime('%Y'), rotation=90, fontsize=14, weight='bold')
-    plt.yticks(range_values, fontsize=14, weight='bold')
+    # year_starts = pd.date_range(start=start, end=end, freq='YS')[::2]
+    # plt.xticks(year_starts, year_starts.strftime('%Y'), rotation=90, fontsize=14, weight='bold')
+    # plt.yticks(range_values, fontsize=14, weight='bold')
     
     plt.legend(loc='upper right', prop={'size': 14, 'weight': 'bold'}, ncol=2)
     plt.grid(True)
     plt.margins(x=0)
 
-    # figManager = plt.get_current_fig_manager()
-    # figManager.window.showMaximized()
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
 
     plt.tight_layout()
 
-    output_dir = f"results/timeseries/{btype}/{name}"
+    # output_dir = f"results/timeseries/{btype}/{name}"
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    # if not os.path.exists(output_dir):
+    #     os.makedirs(output_dir)
     
-    plt.savefig(os.path.join(output_dir, f'{sector}.png'))
-    plt.close()
+    # plt.savefig(os.path.join(output_dir, f'{sector}.png'))
+    # plt.close()
 
-    # plt.show()
+    plt.show()
 
 sectors = {
     'Weddell': {'lon': (-60, 20), 'lat': (-50, -72)},
@@ -84,30 +84,30 @@ start = '1979-01-01'
 end = '2023-12-01'
 
 # Independent Variables (IVs)
-df_soi = pd.read_pickle('pickles/high_soi.pkl')
-df_pdo = pd.read_pickle('pickles/high_pdo.pkl')
-df_iod = pd.read_pickle('pickles/high_iod.pkl')
+df_soi = pd.read_pickle('pickles/soi.pkl')
+df_pdo = pd.read_pickle('pickles/pdo.pkl')
+df_iod = pd.read_pickle('pickles/iod.pkl')
 
-df_sam = pd.read_excel('other_data/highpass/sam_high.xlsx')
+df_sam = pd.read_excel('other_data/sam.xlsx')
 
-df_ssr = pd.read_pickle('pickles/high_ssr.pkl')
-df_str = pd.read_pickle('pickles/high_str.pkl')
+df_ssr = pd.read_pickle('pickles/ssr.pkl')
+df_str = pd.read_pickle('pickles/str.pkl')
 
 # df_u10 = pd.read_pickle('pickles/u10.pkl')
 # df_v10 = pd.read_pickle('pickles/v10.pkl')
 
 # df_t2m = pd.read_pickle('pickles/t2m.pkl')
 
-df_slhf = pd.ExcelFile('other_data/highpass/monthly_slhf_high_filtered.xlsx')
-df_sshf = pd.ExcelFile('other_data/highpass/monthly_sshf_high_filtered.xlsx')
+df_slhf = pd.ExcelFile('other_data/monthly_slhf_value_filtered.xlsx')
+df_sshf = pd.ExcelFile('other_data/monthly_sshf_value_filtered.xlsx')
 
-df_u10 = pd.ExcelFile('other_data/highpass/monthly_u10_high_filtered.xlsx')
-df_v10 = pd.ExcelFile('other_data/highpass/monthly_v10_high_filtered.xlsx')
+df_u10 = pd.ExcelFile('other_data/monthly_u10_value_filtered.xlsx')
+df_v10 = pd.ExcelFile('other_data/monthly_v10_value_filtered.xlsx')
 
-df_t2m = pd.ExcelFile('other_data/highpass/monthly_t2m_high_filtered.xlsx')
+df_t2m = pd.ExcelFile('other_data/monthly_t2m_value_filtered.xlsx')
 
 # Dependent Variable (DV)
-df_sie = pd.read_pickle('pickles/high_sie.pkl')
+df_sie = pd.read_pickle('pickles/sie.pkl')
 
 df_soi_flat = standardize(flatten(df_soi))
 df_pdo_flat = standardize(flatten(df_pdo))
@@ -153,8 +153,13 @@ for sector in sectors:
         "T2M": df_t2m_flat
     }
 
-    for key, val in df_dict.items():
-        plot_sector_data(sector, {
+    # for key, val in df_dict.items():
+    #     plot_sector_data(sector, {
+    #         "SIE": df_sie_flat,
+    #         key: val,
+    #     }, start, end)
+
+    plot_sector_data(sector, {
             "SIE": df_sie_flat,
-            key: val,
+            "T2M": df_t2m_flat
         }, start, end)
